@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="100dp"
+    android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:textDirection="rtl"
+    android:layoutDirection="rtl"
+    android:background="@drawable/item_bg"
+    android:elevation="2dp"
+    >
+    <ImageView
+        android:id="@+id/ivPic"
+        android:layout_width="100dp"
+        android:layout_height="match_parent"
+        android:src="@drawable/r1"
+        android:padding="10dp"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="15dp">
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tvRestName"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:textSize="25sp"
+            android:textColor="#393939"
+            android:text="כותרת"/>
+
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tvRestSubType"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:textSize="15sp"
+            android:textColor="#969696"
+            android:text="איטלקי"/>
+
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tvRestAddress"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginTop="8dp"
+            android:textSize="15sp"
+            android:textColor="#a7a7a7"
+            android:text="כתובת רחוב, עיר"/>
+    </LinearLayout>
+</LinearLayout>
