@@ -22,10 +22,15 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class RestListActivity extends AppCompatActivity {
+
+    public final static String extraFilter = "filter";
+
+    ArrayList mCatFilter = null;
 
     ListView mLvRests;
     List<Restaurant> mRests = new LinkedList<>();
@@ -40,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if(getIntent().getExtras().get(extraFilter) != null) {
+            mCatFilter = (ArrayList<Restaurant.RestSubType>) getIntent().getExtras().get(extraFilter);
+        }
+
 
         mLvRests = (ListView) findViewById(R.id.lvRests);
 
@@ -103,11 +113,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void populateRestaurants(List rests) {
-        rests.add(Restaurant.r1);
-        rests.add(Restaurant.r2);
-        rests.add(Restaurant.r3);
-        rests.add(Restaurant.r4);
-        rests.add(Restaurant.r5);
+        if(mCatFilter != null && mCatFilter.contains(Restaurant.r1.subType))
+            rests.add(Restaurant.r1);
+        if(mCatFilter != null && mCatFilter.contains(Restaurant.r2.subType))
+            rests.add(Restaurant.r2);
+        if(mCatFilter != null && mCatFilter.contains(Restaurant.r3.subType))
+            rests.add(Restaurant.r3);
+        if(mCatFilter != null && mCatFilter.contains(Restaurant.r4.subType))
+            rests.add(Restaurant.r4);
+        if(mCatFilter != null && mCatFilter.contains(Restaurant.r5.subType))
+            rests.add(Restaurant.r5);
     }
 
     class RestAdapter extends ArrayAdapter<Restaurant> {

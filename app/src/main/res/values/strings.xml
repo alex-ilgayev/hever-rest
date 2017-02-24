@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">HeverRest</string>
+    <string name="charge_blue">הטען כרטיס כחול</string>
+    <string name="hever_user">תעודת זהות</string>
+    <string name="hever_pass">סיסמא</string>
+    <string name="hever_login">התחבר</string>
+    <string name="category_search">חפש לפי קטגוריה</string>
 </resources>
