@@ -23,17 +23,20 @@ import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class RestListActivity extends AppCompatActivity {
 
     public final static String extraFilter = "filter";
 
-    ArrayList mCatFilter = null;
+    ArrayList<Restaurant.RestSubType> mCatFilter = null;
 
     ListView mLvRests;
-    List<Restaurant> mRests = new LinkedList<>();
+    ArrayList<Restaurant> mRests = new ArrayList<>();
     RestAdapter mAdapter;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -53,7 +56,7 @@ public class RestListActivity extends AppCompatActivity {
 
         mLvRests = (ListView) findViewById(R.id.lvRests);
 
-        populateRestaurants(mRests);
+        mRests = populateRestaurants();
 
         mAdapter = new RestAdapter(this, mRests);
 
@@ -112,17 +115,16 @@ public class RestListActivity extends AppCompatActivity {
         client.disconnect();
     }
 
-    public void populateRestaurants(List rests) {
-        if(mCatFilter != null && mCatFilter.contains(Restaurant.r1.subType))
-            rests.add(Restaurant.r1);
-        if(mCatFilter != null && mCatFilter.contains(Restaurant.r2.subType))
-            rests.add(Restaurant.r2);
-        if(mCatFilter != null && mCatFilter.contains(Restaurant.r3.subType))
-            rests.add(Restaurant.r3);
-        if(mCatFilter != null && mCatFilter.contains(Restaurant.r4.subType))
-            rests.add(Restaurant.r4);
-        if(mCatFilter != null && mCatFilter.contains(Restaurant.r5.subType))
-            rests.add(Restaurant.r5);
+    public ArrayList<Restaurant> populateRestaurants() {
+        Set<Restaurant> restsSet = new HashSet<>();
+
+        if(mCatFilter != null) {
+            for(Restaurant.RestSubType type: mCatFilter){
+                for(Restaurant r: Restaurant.hashRestList.get(type))
+                    restsSet.add(r);
+            }
+        }
+        return new ArrayList<>(restsSet);
     }
 
     class RestAdapter extends ArrayAdapter<Restaurant> {

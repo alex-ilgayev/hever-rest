@@ -12,6 +12,9 @@ import com.alex.heverrest.Model.Restaurant;
 
 import java.util.ArrayList;
 
+import static com.alex.heverrest.Model.Restaurant.hashRestList;
+import static com.alex.heverrest.Model.Restaurant.restList;
+
 public class FrontActivity extends AppCompatActivity {
 
 
@@ -47,6 +50,8 @@ public class FrontActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+
+        populateAllRestaurant();
     }
 
     protected void onClickSelectedCategory(View v) {
@@ -108,6 +113,22 @@ public class FrontActivity extends AppCompatActivity {
             selectedCategories.add(cat);
             tv.setTextAppearance(R.style.CategorySelected);
             tv.setBackgroundResource(R.drawable.item_category_selected);
+        }
+    }
+
+    protected void populateAllRestaurant() {
+        restList.add(Restaurant.r1);
+        restList.add(Restaurant.r2);
+        restList.add(Restaurant.r3);
+        restList.add(Restaurant.r4);
+        restList.add(Restaurant.r5);
+
+        for(Restaurant r: restList) {
+            for(Restaurant.RestSubType type: r.subType) {
+                if(!hashRestList.containsKey(type))
+                    hashRestList.put(type, new ArrayList<Restaurant>());
+                hashRestList.get(type).add(r);
+            }
         }
     }
 }
