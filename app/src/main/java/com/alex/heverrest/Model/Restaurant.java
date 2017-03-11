@@ -45,6 +45,56 @@ public class Restaurant {
             this.type = type;
         }
 
+        /**
+         * receives string in format בשרי | אסייתי and returns subtypes array.
+         */
+        public static RestSubType[] findAllSubTypes(String str) {
+            String[] splitted = str.split(" \\| ");
+            ArrayList<RestSubType> typeArr = new ArrayList<>();
+            for(String s: splitted) {
+                typeArr.add(RestSubType.findRestSubType(s));
+            }
+            return (RestSubType[])typeArr.toArray(new RestSubType[0]);
+        }
+
+        /**
+         * receives string in format אסייתי with single subtype and return and type.
+         */
+        public static RestSubType findRestSubType(String type) {
+            switch(type) {
+                case "איטלקי":
+                    return Italian;
+                case "אסייתי":
+                    return Asian;
+                case "מקסיקני":
+                    return Mexican;
+                case "סושי":
+                    return Sushi;
+                case "צרפתי":
+                    return French;
+                case "צמחוני-טבעוני":
+                    return Vegan;
+                case "מתוקים-קינוחים":
+                    return Sweets;
+                case "בשרים":
+                    return Meat;
+                case "בית קפה":
+                    return Coffee;
+                case "כריכים-סלטים":
+                    return Sandwiches;
+                case "חלבי":
+                    return Dairy;
+                case "דגים":
+                    return Fish;
+                case "בר-פאב":
+                    return Bar;
+                case "ים תיכוני":
+                    return Mediterranean;
+                default:
+                    return MiddleEastern;
+            }
+        }
+
         @Override
         public String toString() {
             return this.type;

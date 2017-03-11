@@ -7,9 +7,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alex.heverrest.Model.Restaurant;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 
 import static com.alex.heverrest.Model.Restaurant.hashRestList;
@@ -17,6 +27,9 @@ import static com.alex.heverrest.Model.Restaurant.restList;
 
 public class FrontActivity extends AppCompatActivity {
 
+    private static final String JSON_NAME_TAG = "name";
+    private static final String JSON_SUB_TYPE_TAG = "sub_type";
+    private static final String JSON_ADDRESS_TAG = "address";
 
 
     ArrayList selectedCategories = new ArrayList();
@@ -117,18 +130,47 @@ public class FrontActivity extends AppCompatActivity {
     }
 
     protected void populateAllRestaurant() {
-        restList.add(Restaurant.r1);
-        restList.add(Restaurant.r2);
-        restList.add(Restaurant.r3);
-        restList.add(Restaurant.r4);
-        restList.add(Restaurant.r5);
+        try {
+            InputStream is = getResources().openRawResource(R.raw.json_rests);
+            Writer writer = new StringWriter();
+            char[] buffer = new char[1024];
 
-        for(Restaurant r: restList) {
-            for(Restaurant.RestSubType type: r.subType) {
-                if(!hashRestList.containsKey(type))
-                    hashRestList.put(type, new ArrayList<Restaurant>());
-                hashRestList.get(type).add(r);
+            try {
+                Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                int n;
+                while ((n = reader.read(buffer)) != -1) {
+                    writer.write(buffer, 0, n);
+                }
+            } finally {
+                is.close();
             }
+
+            String jsonString = writer.toString();
+
+            JSONArray jArr = new JSONArray(jsonString);
+            for(int i=0; i<jArr.length(); i++) {
+                JSONObject jObj = jArr.getJSONObject(i);
+
+                String name;
+                Restaurant.RestSubType[] subTypes;
+                String address;
+
+                name = jObj.getString(JSON_NAME_TAG);
+                subTypes = Restaurant.RestSubType.findAllSubTypes(jObj.getString(JSON_SUB_TYPE_TAG));
+                address = jObj.getString(JSON_ADDRESS_TAG);
+                Restaurant rest = new Restaurant(i+1, name, null, subTypes, address, 32.0, 35.0, R.drawable.r1);
+                restList.add(rest);
+
+                for(Restaurant.RestSubType type: rest.subType) {
+                    if(!hashRestList.containsKey(type))
+                        hashRestList.put(type, new ArrayList<Restaurant>());
+                    hashRestList.get(type).add(rest);
+                }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, getString(R.string.json_error), Toast.LENGTH_LONG).show();
         }
+
     }
 }
