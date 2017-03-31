@@ -1,11 +1,15 @@
 package com.alex.heverrest;
 
-import android.app.Activity;
+import android.*;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,26 +19,32 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alex.heverrest.Model.Restaurant;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.vision.text.Text;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class RestListActivity extends AppCompatActivity {
+public class RestListActivity extends AppCompatActivity  {
 
     public final static String extraFilter = "filter";
+    public final static String extraLocation = "location";
 
     ArrayList<Restaurant.RestSubType> mCatFilter = null;
-
+    Location mLocation;
     ListView mLvRests;
     ArrayList<Restaurant> mRests = new ArrayList<>();
     RestAdapter mAdapter;
@@ -42,16 +52,22 @@ public class RestListActivity extends AppCompatActivity {
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
-    private GoogleApiClient client;
+    private GoogleApiClient mClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(getIntent().getExtras().get(extraFilter) != null) {
+        if (getIntent().getExtras().get(extraFilter) != null) {
             mCatFilter = (ArrayList<Restaurant.RestSubType>) getIntent().getExtras().get(extraFilter);
         }
+
+        if(getIntent().getExtras().get(extraLocation) != null) {
+            mLocation = (Location) getIntent().getExtras().get(extraLocation);
+        }
+
+        checkLocationValidity();
 
 
         mLvRests = (ListView) findViewById(R.id.lvRests);
@@ -76,7 +92,21 @@ public class RestListActivity extends AppCompatActivity {
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        mClient = new GoogleApiClient.Builder(this)
+                .addApi(AppIndex.API).build();
+    }
+
+    private void checkLocationValidity() {
+        if(mLocation == null) {
+            Toast.makeText(this, getString(R.string.location_error), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if(!mLocation.hasAccuracy() || mLocation.getAccuracy() > 150.0) {
+            Toast.makeText(this, getString(R.string.location_accuracy_error), Toast.LENGTH_LONG).show();
+            return;
+        }
     }
 
     /**
@@ -101,8 +131,8 @@ public class RestListActivity extends AppCompatActivity {
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+        mClient.connect();
+        AppIndex.AppIndexApi.start(mClient, getIndexApiAction());
     }
 
     @Override
@@ -111,8 +141,8 @@ public class RestListActivity extends AppCompatActivity {
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
+        AppIndex.AppIndexApi.end(mClient, getIndexApiAction());
+        mClient.disconnect();
     }
 
     public ArrayList<Restaurant> populateRestaurants() {
@@ -124,7 +154,24 @@ public class RestListActivity extends AppCompatActivity {
                     restsSet.add(r);
             }
         }
-        return new ArrayList<>(restsSet);
+
+        ArrayList arr = new ArrayList<>(restsSet);
+        Collections.sort(arr, new Comparator() {
+            @Override
+            public int compare(Object o1, Object o2) {
+                if(mLocation == null)
+                    return 0;
+
+                Restaurant r1 = (Restaurant)o1;
+                Restaurant r2 = (Restaurant)o2;
+
+                float d1 = r1.distanceTo(mLocation);
+                float d2 = r2.distanceTo(mLocation);
+
+                return d1 < d2 ? -1 : 1;
+            }
+        });
+        return arr;
     }
 
     class RestAdapter extends ArrayAdapter<Restaurant> {
@@ -146,11 +193,14 @@ public class RestListActivity extends AppCompatActivity {
             TextView tvAddress = (TextView) convertView.findViewById(R.id.tvRestAddress);
             TextView tvRestSubType = (TextView) convertView.findViewById(R.id.tvRestSubType);
             ImageView ivPic = (ImageView) convertView.findViewById(R.id.ivPic);
+            TextView tvDistance = (TextView) convertView.findViewById(R.id.tvDistance);
 
             // Populate the data into the template view using the data object
             tvName.setText(rest.name);
             tvAddress.setText(rest.address);
             ivPic.setImageResource(rest.picRes);
+            if(mLocation != null)
+                tvDistance.setText(String.format("%.1f",rest.distanceTo(mLocation)) + " ק\"מ");
 
             int i = 0;
             String s = "";

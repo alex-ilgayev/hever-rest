@@ -1,8 +1,15 @@
 package com.alex.heverrest;
 
+import android.*;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -10,6 +17,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alex.heverrest.Model.Restaurant;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,14 +43,28 @@ import java.util.ArrayList;
 import static com.alex.heverrest.Model.Restaurant.hashRestList;
 import static com.alex.heverrest.Model.Restaurant.restList;
 
-public class FrontActivity extends AppCompatActivity {
+public class FrontActivity extends AppCompatActivity implements
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener{
+
+    public static final String TAG = "hever-rest";
 
     private static final String JSON_NAME_TAG = "name";
     private static final String JSON_SUB_TYPE_TAG = "sub_type";
     private static final String JSON_ADDRESS_TAG = "address";
+    private static final String JSON_PIC_TAG = "pic";
+    private static final String JSON_LAT_TAG = "lat";
+    private static final String JSON_LONG_TAG = "long";
 
+    public final static int MY_PERMISSIONS_REQUEST_COARSE_LOCATION = 1;
+    public final static int MY_PERMISSION_REQUEST_FINE_LOCATION = 2;
+
+    Location mLastLocation;
+    LocationRequest mLoationRequest = null;
 
     ArrayList selectedCategories = new ArrayList();
+
+    private GoogleApiClient mClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +92,189 @@ public class FrontActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent i = new Intent(FrontActivity.this, RestListActivity.class);
                 i.putExtra(RestListActivity.extraFilter, selectedCategories);
+                i.putExtra(RestListActivity.extraLocation, mLastLocation);
                 startActivity(i);
             }
         });
 
         populateAllRestaurant();
+
+        mClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+//                .addOnConnectionlFailedListener(this)
+                .addApi(LocationServices.API)
+                .addApi(AppIndex.API).build();
+    }
+
+    /**
+     * Requests location updates from the FusedLocationApi.
+     */
+    protected void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_COARSE_LOCATION);
+
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, mLoationRequest, this);
+    }
+
+    /**
+     * Removes location updates from the FusedLocationApi.
+     */
+    protected void stopLocationUpdates() {
+        // It is a good practice to remove location requests when the activity is in a paused or
+        // stopped state. Doing so helps battery performance and is especially
+        // recommended in applications that request frequent location updates.
+
+        // The final argument to {@code requestLocationUpdates()} is a LocationListener
+        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
+        LocationServices.FusedLocationApi.removeLocationUpdates(mClient, this);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        mClient.connect();
+        AppIndex.AppIndexApi.start(mClient, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(mClient, getIndexApiAction());
+        mClient.disconnect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
+        if (mClient.isConnected()) {
+            stopLocationUpdates();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Within {@code onPause()}, we pause location updates, but leave the
+        // connection to GoogleApiClient intact.  Here, we resume receiving
+        // location updates if the user has requested them.
+
+        if (mClient.isConnected()) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        if (ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_COARSE_LOCATION);
+
+            return;
+        }
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mClient);
+
+        if (mLastLocation != null) {
+            String lat = String.valueOf(mLastLocation.getLatitude());
+            String lng = String.valueOf(mLastLocation.getLongitude());
+//            Toast.makeText(this, String.valueOf(lat) + " " + String.valueOf(lng)
+//                    + " " + String.valueOf(mLastLocation.getAccuracy()), Toast.LENGTH_LONG).show();
+        }
+
+        LocationRequest request = new LocationRequest();
+        request.setInterval(10000);
+        request.setFastestInterval(5000);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, request, this);
+    }
+
+    /**
+     * Callback that fires when the location changes.
+     */
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+
+        String lat = String.valueOf(mLastLocation.getLatitude());
+        String lng = String.valueOf(mLastLocation.getLongitude());
+//        Toast.makeText(this, String.valueOf(lat) + " " + StResting.valueOf(lng)
+//                + " " + String.valueOf(mLastLocation.getAccuracy()), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        // The connection to Google Play services was lost for some reason. We call connect() to
+        // attempt to re-establish the connection.
+        Log.d(TAG, "Connection suspended");
+        mClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+        // onConnectionFailed.
+        Log.d(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSION_REQUEST_FINE_LOCATION:
+            case MY_PERMISSIONS_REQUEST_COARSE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    //TODO
+
+                } else {
+                    Toast.makeText(this, getString(R.string.location_error), Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
     }
 
     protected void onClickSelectedCategory(View v) {
@@ -154,11 +364,23 @@ public class FrontActivity extends AppCompatActivity {
                 String name;
                 Restaurant.RestSubType[] subTypes;
                 String address;
+                String pic;
+                String lat;
+                String lng;
+
+
 
                 name = jObj.getString(JSON_NAME_TAG);
                 subTypes = Restaurant.RestSubType.findAllSubTypes(jObj.getString(JSON_SUB_TYPE_TAG));
                 address = jObj.getString(JSON_ADDRESS_TAG);
-                Restaurant rest = new Restaurant(i+1, name, null, subTypes, address, 32.0, 35.0, R.drawable.r1);
+                pic = jObj.getString(JSON_PIC_TAG);
+                final int id = getResources().getIdentifier(pic, "drawable", getPackageName());
+                lat = jObj.getString(JSON_LAT_TAG);
+                lng = jObj.getString(JSON_LONG_TAG);
+
+
+                Restaurant rest = new Restaurant(i+1, name, null, subTypes, address,
+                        Double.parseDouble(lat), Double.parseDouble(lng), id);
                 restList.add(rest);
 
                 for(Restaurant.RestSubType type: rest.subType) {

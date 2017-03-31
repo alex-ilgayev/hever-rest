@@ -6,4 +6,6 @@
     <string name="hever_login">התחבר</string>
     <string name="category_search">חפש לפי קטגוריה</string>
     <string name="json_error">קרתה שגיאה בטעינת קובץ המסעדות</string>
+    <string name="location_error">שגיאה במיקום המכשיר</string>
+    <string name="location_accuracy_error">יש בעיה בדיוק מיקום</string>
 </resources>

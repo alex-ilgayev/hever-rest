@@ -1,5 +1,7 @@
 package com.alex.heverrest.Model;
 
+import android.location.Location;
+
 import com.alex.heverrest.R;
 
 import java.util.ArrayList;
@@ -127,6 +129,13 @@ public class Restaurant {
         this.lat = lat;
         this.lng = lng;
         this.picRes = picRes;
+    }
+
+    public float distanceTo(Location l) {
+        Location rest = new Location("rest");
+        rest.setLatitude(this.lat);
+        rest.setLongitude(this.lng);
+        return rest.distanceTo(l)/1000.0f;
     }
 
     @Override
