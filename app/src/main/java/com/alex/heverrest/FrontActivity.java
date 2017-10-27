@@ -90,6 +90,11 @@ public class FrontActivity extends AppCompatActivity implements
         findViewById(R.id.btnSearchCategory).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(selectedCategories.size() == 0) {
+                    Toast.makeText(FrontActivity.this, getString(R.string.no_categories), Toast.LENGTH_SHORT)
+                            .show();
+                    return;
+                }
                 Intent i = new Intent(FrontActivity.this, RestListActivity.class);
                 i.putExtra(RestListActivity.extraFilter, selectedCategories);
                 i.putExtra(RestListActivity.extraLocation, mLastLocation);

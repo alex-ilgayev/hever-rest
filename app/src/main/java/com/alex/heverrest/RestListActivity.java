@@ -82,8 +82,8 @@ public class RestListActivity extends AppCompatActivity  {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Restaurant r = mRests.get(position);
-                Uri uri = Uri.parse("geo:0,0?q=" + Uri.encode(r.address));
-                //Uri uri = Uri.parse("geo:0,0?q=" + r.lat + "," + r.lng);
+//                Uri uri = Uri.parse("geo:0,0?q=" + Uri.encode(r.address));
+                Uri uri = Uri.parse("geo:0,0?q=" + r.lat + "," + r.lng);
                 Intent i = new Intent(Intent.ACTION_VIEW, uri);
                 i.setPackage("com.google.android.apps.maps");
                 startActivity(i);

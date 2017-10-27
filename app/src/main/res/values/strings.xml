@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HeverRest</string>
+    <string name="app_name">חבר</string>
     <string name="charge_blue">הטען כרטיס כחול</string>
     <string name="hever_user">תעודת זהות</string>
     <string name="hever_pass">סיסמא</string>
@@ -9,4 +9,5 @@
     <string name="location_error">שגיאה במיקום המכשיר</string>
     <string name="location_accuracy_error">יש בעיה בדיוק מיקום</string>
     <string name="no_location_error">לא ניתנה הרשאה למיקום, המיקום לא יהיה פעיל</string>
+    <string name="no_categories">אנא בחר קטגוריה</string>
 </resources>

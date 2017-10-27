@@ -197,7 +197,7 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/llSubTypes"
         android:layout_toStartOf="@id/btnChargeBlue"
-        style="@style/CustomButtonOrange"/>
+        style="@style/CustomButtonGreen"/>
 
 
 </RelativeLayout>
