@@ -115,11 +115,27 @@ public class FrontActivity extends AppCompatActivity implements
                 ActivityCompat.checkSelfPermission(this,
                         android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                    MY_PERMISSIONS_REQUEST_COARSE_LOCATION);
-
             return;
+        }
+
+        if(!mClient.isConnected())
+            mClient.connect();
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mClient);
+
+        if (mLastLocation != null) {
+            String lat = String.valueOf(mLastLocation.getLatitude());
+            String lng = String.valueOf(mLastLocation.getLongitude());
+//            Toast.makeText(this, String.valueOf(lat) + " " + String.valueOf(lng)
+//                    + " " + String.valueOf(mLastLocation.getAccuracy()), Toast.LENGTH_LONG).show();
+        }
+
+        if(mLoationRequest == null) {
+            mLoationRequest = new LocationRequest();
+            mLoationRequest.setInterval(10000);
+            mLoationRequest.setFastestInterval(5000);
+            mLoationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mClient, mLoationRequest, this);
     }
@@ -192,22 +208,7 @@ public class FrontActivity extends AppCompatActivity implements
             return;
         }
 
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mClient);
-
-        if (mLastLocation != null) {
-            String lat = String.valueOf(mLastLocation.getLatitude());
-            String lng = String.valueOf(mLastLocation.getLongitude());
-//            Toast.makeText(this, String.valueOf(lat) + " " + String.valueOf(lng)
-//                    + " " + String.valueOf(mLastLocation.getAccuracy()), Toast.LENGTH_LONG).show();
-        }
-
-        LocationRequest request = new LocationRequest();
-        request.setInterval(10000);
-        request.setFastestInterval(5000);
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, request, this);
+        startLocationUpdates();
     }
 
     /**
@@ -248,10 +249,10 @@ public class FrontActivity extends AppCompatActivity implements
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    //TODO
-
+                    //TODO:
                 } else {
-                    Toast.makeText(this, getString(R.string.location_error), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.no_location_error), Toast.LENGTH_LONG)
+                            .show();
                 }
                 return;
             }

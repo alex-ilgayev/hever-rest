@@ -34,6 +34,13 @@
         <item name="android:background">@drawable/ripple_button_green</item>
         <item name="android:textColor">#ffffff</item>
     </style>
+
+    <style name="CustomButtonOrange" parent="@android:style/TextAppearance.Widget.Button">
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/ripple_button_orange</item>
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
     <style name="CustomButtonBlue" parent="@android:style/TextAppearance.Widget.Button">
         <item name="android:gravity">center</item>
         <item name="android:background">@drawable/ripple_button_blue</item>

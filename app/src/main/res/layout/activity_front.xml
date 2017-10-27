@@ -8,6 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="#c8d4c7"
     tools:context="com.alex.heverrest.FrontActivity">
 
     <AutoCompleteTextView
@@ -17,16 +18,27 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="65dp" />
+        android:layout_marginTop="65dp"
+        android:visibility="gone"/>
+
+    <ImageView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_below="@+id/etSearch"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
+        android:src="@drawable/icon"/>
 
     <Button
         android:id="@+id/btnLookAround"
         android:text="חפש מסביבי"
-        android:layout_width="wrap_content"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/etSearch"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="66dp" />
+        android:layout_marginTop="130dp"
+        style="@style/CustomButtonOrange"
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/tvLabel"
@@ -149,7 +161,7 @@
             android:orientation="horizontal">
             <TextView
                 android:id="@+id/tvCatBar"
-                android:text="בר-פאה"
+                android:text="בר-פאב"
                 style="@style/Category"
                 android:onClick="onClickSelectedCategory"
                 />
@@ -167,13 +179,8 @@
                 />
         </LinearLayout>
     </LinearLayout>
-
-    <!--<FrameLayout-->
-        <!--android:id="@+id/flChargeBlue"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:foreground="?attr/selectableItemBackground">-->
         <Button
+            android:visibility="gone"
             android:layout_alignParentBottom="true"
             android:layout_toEndOf="@+id/etSearch"
             android:layout_margin="10dp"
@@ -182,9 +189,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/btnChargeBlue"
             style="@style/CustomButtonBlue"/>
-    <!--</FrameLayout>-->
-
-
     <Button
         android:layout_margin="10dp"
         android:text="@string/category_search"
@@ -193,7 +197,7 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/llSubTypes"
         android:layout_toStartOf="@id/btnChargeBlue"
-        style="@style/CustomButtonGreen"/>
+        style="@style/CustomButtonOrange"/>
 
 
 </RelativeLayout>

@@ -8,4 +8,5 @@
     <string name="json_error">קרתה שגיאה בטעינת קובץ המסעדות</string>
     <string name="location_error">שגיאה במיקום המכשיר</string>
     <string name="location_accuracy_error">יש בעיה בדיוק מיקום</string>
+    <string name="no_location_error">לא ניתנה הרשאה למיקום, המיקום לא יהיה פעיל</string>
 </resources>

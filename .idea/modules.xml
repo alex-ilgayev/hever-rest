@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HeverRest.iml" filepath="$PROJECT_DIR$/HeverRest.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hever-rest.iml" filepath="$PROJECT_DIR$/hever-rest.iml" />
     </modules>
   </component>
 </project>
