@@ -67,19 +67,16 @@
                 android:id="@+id/tvCatItalian"
                 android:text="איטלקי"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatAsian"
                 android:text="אסייתי"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatMexican"
                 android:text="מקסיקני"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
         </LinearLayout>
         <LinearLayout
@@ -91,19 +88,16 @@
                 android:id="@+id/tvCatSushi"
                 android:text="סושי"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatFrench"
                 android:text="צרפתי"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatVegan"
                 android:text="צמחוני-טבעוני"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
         </LinearLayout>
         <LinearLayout
@@ -115,19 +109,16 @@
                 android:id="@+id/tvCatSweets"
                 android:text="מתוקים-קינוחים"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatMeat"
                 android:text="בשרים"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatCoffee"
                 android:text="בית קפה"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
         </LinearLayout>
         <LinearLayout
@@ -139,19 +130,16 @@
                 android:id="@+id/tvCatSandwiches"
                 android:text="כריכים-סלטים"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatDairy"
                 android:text="חלבי"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatFish"
                 android:text="דגים"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
         </LinearLayout>
         <LinearLayout
@@ -163,19 +151,16 @@
                 android:id="@+id/tvCatBar"
                 android:text="בר-פאב"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatMediterranean"
                 android:text="ים-תיכוני"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
             <TextView
                 android:id="@+id/tvCatMiddleEastern"
                 android:text="מזרחי"
                 style="@style/Category"
-                android:onClick="onClickSelectedCategory"
                 />
         </LinearLayout>
     </LinearLayout>

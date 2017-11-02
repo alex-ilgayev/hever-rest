@@ -64,6 +64,8 @@ public class FrontActivity extends AppCompatActivity implements
 
     ArrayList selectedCategories = new ArrayList();
 
+    TextView tvCatItalian;
+
     private GoogleApiClient mClient;
 
     @Override
@@ -71,6 +73,99 @@ public class FrontActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_front);
 
+        // setting onclick for all categories.
+        findViewById(R.id.tvCatAsian).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatBar).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatCoffee).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatDairy).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatFish).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatItalian).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatFrench).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatMeat).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatMediterranean).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatMexican).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatMiddleEastern).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatSandwiches).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatSushi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatVegan).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+        findViewById(R.id.tvCatSweets).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickSelectedCategory(v);
+            }
+        });
+
+        // currently not in use.
         findViewById(R.id.btnChargeBlue).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,6 +174,7 @@ public class FrontActivity extends AppCompatActivity implements
             }
         });
 
+        // currently not in use.
         findViewById(R.id.btnLookAround).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -378,6 +474,11 @@ public class FrontActivity extends AppCompatActivity implements
 
                 name = jObj.getString(JSON_NAME_TAG);
                 subTypes = Restaurant.RestSubType.findAllSubTypes(jObj.getString(JSON_SUB_TYPE_TAG));
+                if(!jObj.has(JSON_ADDRESS_TAG)) {
+                    int x = 0;
+                    x++;
+                    continue;
+                }
                 address = jObj.getString(JSON_ADDRESS_TAG);
                 pic = jObj.getString(JSON_PIC_TAG);
                 final int id = getResources().getIdentifier(pic, "drawable", getPackageName());
