@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +29,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.vision.text.Line;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -39,6 +41,9 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import static com.alex.heverrest.Model.Restaurant.hashRestList;
 import static com.alex.heverrest.Model.Restaurant.restList;
@@ -62,9 +67,7 @@ public class FrontActivity extends AppCompatActivity implements
     Location mLastLocation;
     LocationRequest mLoationRequest = null;
 
-    ArrayList selectedCategories = new ArrayList();
-
-    TextView tvCatItalian;
+    ArrayList<Restaurant.RestSubType> selectedCategories = new ArrayList();
 
     private GoogleApiClient mClient;
 
@@ -165,24 +168,6 @@ public class FrontActivity extends AppCompatActivity implements
             }
         });
 
-        // currently not in use.
-        findViewById(R.id.btnChargeBlue).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(FrontActivity.this, ChargeActivity.class);
-                startActivity(i);
-            }
-        });
-
-        // currently not in use.
-        findViewById(R.id.btnLookAround).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(FrontActivity.this, RestListActivity.class);
-                startActivity(i);
-            }
-        });
-
         findViewById(R.id.btnSearchCategory).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -195,6 +180,44 @@ public class FrontActivity extends AppCompatActivity implements
                 i.putExtra(RestListActivity.extraFilter, selectedCategories);
                 i.putExtra(RestListActivity.extraLocation, mLastLocation);
                 startActivity(i);
+            }
+        });
+
+        findViewById(R.id.btnSelectAll).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<Restaurant.RestSubType> list = Arrays.asList(Restaurant.RestSubType.values());
+                selectedCategories.clear();
+                selectedCategories.addAll(list);
+
+                LinearLayout layout = (LinearLayout)findViewById(R.id.llSubTypes);
+
+                for(int i=0; i<layout.getChildCount(); i++) {
+                    LinearLayout subLayout = (LinearLayout) layout.getChildAt(i);
+                    for(int j=0; j<3; j++) {
+                        TextView tv = (TextView) subLayout.getChildAt(j);
+                        tv.setTextAppearance(R.style.CategorySelected);
+                        tv.setBackgroundResource(R.drawable.item_category_selected);
+                    }
+                }
+            }
+        });
+
+        findViewById(R.id.btnDeSelectAll).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedCategories.clear();
+
+                LinearLayout layout = (LinearLayout)findViewById(R.id.llSubTypes);
+
+                for(int i=0; i<layout.getChildCount(); i++) {
+                    LinearLayout subLayout = (LinearLayout) layout.getChildAt(i);
+                    for(int j=0; j<3; j++) {
+                        TextView tv = (TextView) subLayout.getChildAt(j);
+                        tv.setTextAppearance(R.style.Category);
+                        tv.setBackgroundResource(R.drawable.item_category);
+                    }
+                }
             }
         });
 
