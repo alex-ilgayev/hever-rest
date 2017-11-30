@@ -11,53 +11,58 @@
     android:background="#c8d4c7"
     tools:context="com.alex.heverrest.FrontActivity">
 
-    <AutoCompleteTextView
-        android:id="@+id/etSearch"
-        android:text="AutoCompleteTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="65dp"
-        android:visibility="gone"/>
-
     <ImageView
+        android:id="@+id/ivIcon"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:layout_below="@+id/etSearch"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="60dp"
         android:src="@drawable/icon"/>
-
-    <Button
-        android:id="@+id/btnLookAround"
-        android:text="חפש מסביבי"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/etSearch"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="130dp"
-        style="@style/CustomButtonOrange"
-        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/tvLabel"
-        android:text="מה בא לך ?"
+        android:text="@string/label"
         android:textSize="25sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/ivIcon"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="100dp"
+        android:layout_above="@+id/llSubTypes">
+
+        <Button
+            android:id="@+id/btnDeSelectAll"
+            style="@style/CustomButtonOrange"
+            android:layout_width="70dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="0.1"
+            android:text="@string/deselect_all" />
+
+        <Button
+            android:layout_weight="8"
+            android:id="@+id/btnSelectAll"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="@string/select_all"
+            style="@style/CustomButtonBlue"
+            android:layout_marginStart="4dp"/>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/llSubTypes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="23dp"
-        android:layout_below="@+id/tvLabel"
-        android:layout_centerHorizontal="true">
-
+        android:layout_marginTop="5dp"
+        android:layout_above="@+id/btnSearchCategory">
         <LinearLayout
             android:id="@+id/llSybType1"
             android:layout_width="match_parent"
@@ -164,24 +169,13 @@
                 />
         </LinearLayout>
     </LinearLayout>
-        <Button
-            android:visibility="gone"
-            android:layout_alignParentBottom="true"
-            android:layout_toEndOf="@+id/etSearch"
-            android:layout_margin="10dp"
-            android:text="@string/charge_blue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btnChargeBlue"
-            style="@style/CustomButtonBlue"/>
     <Button
         android:layout_margin="10dp"
         android:text="@string/category_search"
         android:id="@+id/btnSearchCategory"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/llSubTypes"
-        android:layout_toStartOf="@id/btnChargeBlue"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         style="@style/CustomButtonGreen"/>
 
 

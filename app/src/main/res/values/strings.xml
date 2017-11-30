@@ -10,4 +10,7 @@
     <string name="location_accuracy_error">יש בעיה בדיוק מיקום</string>
     <string name="no_location_error">לא ניתנה הרשאה למיקום, המיקום לא יהיה פעיל</string>
     <string name="no_categories">אנא בחר קטגוריה</string>
+    <string name="select_all">!בא לי הכל</string>
+    <string name="label">מה בא לך ?</string>
+    <string name="deselect_all">בטל הכל</string>
 </resources>
