@@ -1,15 +1,11 @@
 package com.alex.heverrest;
 
-import android.*;
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,17 +17,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alex.heverrest.Controller.RestaurantController;
 import com.alex.heverrest.Model.Restaurant;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.vision.text.Text;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -42,6 +35,7 @@ public class RestListActivity extends AppCompatActivity  {
 
     public final static String extraFilter = "filter";
     public final static String extraLocation = "location";
+    public final static String extraHashRestList = "hashRestList";
 
     ArrayList<Restaurant.RestSubType> mCatFilter = null;
     Location mLocation;
@@ -150,7 +144,7 @@ public class RestListActivity extends AppCompatActivity  {
 
         if(mCatFilter != null) {
             for(Restaurant.RestSubType type: mCatFilter){
-                for(Restaurant r: Restaurant.hashRestList.get(type))
+                for(Restaurant r: RestaurantController.getInstance().getHashRestList().get(type))
                     restsSet.add(r);
             }
         }

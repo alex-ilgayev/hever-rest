@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/HeverRest.iml" filepath="$PROJECT_DIR$/HeverRest.iml" />
+      <module fileurl="file://F:\Projects\hever-rest\HeverRest.iml" filepath="F:\Projects\hever-rest\HeverRest.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/hever-rest.iml" filepath="$PROJECT_DIR$/hever-rest.iml" />
     </modules>

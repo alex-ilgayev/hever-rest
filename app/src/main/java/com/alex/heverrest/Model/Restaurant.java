@@ -4,6 +4,7 @@ import android.location.Location;
 
 import com.alex.heverrest.R;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
  * Created by Alex on 1/20/2017.
  */
 
-public class Restaurant {
+public class Restaurant implements Serializable{
 
     public enum RestType {
         Caffee,
@@ -154,47 +155,5 @@ public class Restaurant {
         return id;
     }
 
-    public static Restaurant r1 = new Restaurant(1,"BEIR GARTEN",
-            new RestType[]{RestType.Bar},
-            new RestSubType[]{RestSubType.Bar},
-            "תל אביב - יפו, התערוכה 3 ביתן 16",
-            32.096483,
-            34.773274,
-            R.drawable.r1);
-
-    public static Restaurant r2 = new Restaurant(2,"Black",
-            new RestType[]{RestType.Restaurant},
-            new RestSubType[]{RestSubType.Meat},
-            "תל אביב - יפו, הברזל 23",
-            32.108941,
-            34.839759,
-            R.drawable.r2);
-
-    public static Restaurant r3 = new Restaurant(3,"Bread Story",
-            new RestType[]{RestType.Caffee},
-            new RestSubType[]{RestSubType.Coffee},
-            "תל אביב - יפו, דיזינגוף 88",
-            32.076959,
-            34.774479,
-            R.drawable.r3);
-
-    public static Restaurant r4 = new Restaurant(4,"BROWN",
-            new RestType[]{RestType.Caffee, RestType.Restaurant},
-            new RestSubType[]{RestSubType.Italian, RestSubType.Dairy, RestSubType.Sweets},
-            "תל אביב - יפו, ניסים אלוני 10",
-            32.088866,
-            34.797339,
-            R.drawable.r4);
-
-    public static Restaurant r5 = new Restaurant(5,"Chop Chop",
-            new RestType[]{RestType.Restaurant},
-            new RestSubType[]{RestSubType.Asian},
-            "תל אביב - יפו, אבן גבירול 20",
-            32.073648,
-            34.781894,
-            R.drawable.r5);
-
-    public static ArrayList<Restaurant> restList = new ArrayList();
-    public static HashMap<RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
 }
 

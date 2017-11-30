@@ -1,6 +1,5 @@
 package com.alex.heverrest;
 
-import android.*;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -10,24 +9,20 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alex.heverrest.Controller.RestaurantController;
 import com.alex.heverrest.Model.Restaurant;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -39,9 +34,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-
-import static com.alex.heverrest.Model.Restaurant.hashRestList;
-import static com.alex.heverrest.Model.Restaurant.restList;
+import java.util.HashMap;
 
 public class FrontActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
@@ -442,6 +435,11 @@ public class FrontActivity extends AppCompatActivity implements
     }
 
     protected void populateAllRestaurant() {
+        if(RestaurantController.getInstance().getIsPopulated())
+            return;
+        ArrayList<Restaurant> restList = new ArrayList<>();
+        HashMap<Restaurant.RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
+
         try {
             InputStream is = getResources().openRawResource(R.raw.json_rests);
             Writer writer = new StringWriter();
@@ -460,6 +458,7 @@ public class FrontActivity extends AppCompatActivity implements
             String jsonString = writer.toString();
 
             JSONArray jArr = new JSONArray(jsonString);
+
             for(int i=0; i<jArr.length(); i++) {
                 JSONObject jObj = jArr.getJSONObject(i);
 
@@ -488,6 +487,7 @@ public class FrontActivity extends AppCompatActivity implements
 
                 Restaurant rest = new Restaurant(i+1, name, null, subTypes, address,
                         Double.parseDouble(lat), Double.parseDouble(lng), id);
+
                 restList.add(rest);
 
                 for(Restaurant.RestSubType type: rest.subType) {
@@ -500,6 +500,6 @@ public class FrontActivity extends AppCompatActivity implements
             e.printStackTrace();
             Toast.makeText(this, getString(R.string.json_error), Toast.LENGTH_LONG).show();
         }
-
+        RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
     }
 }
