@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,9 +24,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.vision.text.Line;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -41,7 +37,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 
@@ -54,6 +49,7 @@ public class FrontActivity extends AppCompatActivity implements
     private static final String JSON_NAME_TAG = "name";
     private static final String JSON_SUB_TYPE_TAG = "sub_type";
     private static final String JSON_ADDRESS_TAG = "address";
+    private static final String JSON_KOSHER_TAG = "kosher";
     private static final String JSON_PIC_TAG = "pic";
     private static final String JSON_LAT_TAG = "lat";
     private static final String JSON_LONG_TAG = "long";
@@ -61,10 +57,28 @@ public class FrontActivity extends AppCompatActivity implements
     public final static int MY_PERMISSIONS_REQUEST_COARSE_LOCATION = 1;
     public final static int MY_PERMISSION_REQUEST_FINE_LOCATION = 2;
 
+    TextView tvCatAsian;
+    TextView tvCatBar;
+    TextView tvCatCoffee;
+    TextView tvCatDairy;
+    TextView tvCatFish;
+    TextView tvCatItalian;
+    TextView tvCatFrench;
+    TextView tvCatMeat;
+    TextView tvCatMediterranean;
+    TextView tvCatMexican;
+    TextView tvCatMiddleEastern;
+    TextView tvCatSandwiches;
+    TextView tvCatSushi;
+    TextView tvCatVegan;
+    TextView tvCatSweets;
+    ArrayList<TextView> mCategoryList = new ArrayList<>();
+
     Location mLastLocation;
     LocationRequest mLoationRequest = null;
 
-    ArrayList<Restaurant.RestSubType> selectedCategories = new ArrayList();
+    ArrayList<Restaurant.RestSubType> mSelectedCategories = new ArrayList();
+    boolean mIsKosherSelected = false;
 
     private GoogleApiClient mClient;
 
@@ -73,108 +87,161 @@ public class FrontActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_front);
 
+        tvCatAsian = (TextView) findViewById(R.id.tvCatAsian);
+        tvCatBar = (TextView) findViewById(R.id.tvCatBar);
+        tvCatCoffee = (TextView) findViewById(R.id.tvCatCoffee);
+        tvCatDairy = (TextView) findViewById(R.id.tvCatDairy);
+        tvCatFish = (TextView) findViewById(R.id.tvCatFish);
+        tvCatItalian = (TextView) findViewById(R.id.tvCatItalian);
+        tvCatFrench = (TextView) findViewById(R.id.tvCatFrench);
+        tvCatMeat = (TextView) findViewById(R.id.tvCatMeat);
+        tvCatMediterranean = (TextView) findViewById(R.id.tvCatMediterranean);
+        tvCatMexican = (TextView) findViewById(R.id.tvCatMexican);
+        tvCatMiddleEastern = (TextView) findViewById(R.id.tvCatMiddleEastern);
+        tvCatSandwiches = (TextView) findViewById(R.id.tvCatSandwiches);
+        tvCatSushi = (TextView) findViewById(R.id.tvCatSushi);
+        tvCatVegan = (TextView) findViewById(R.id.tvCatVegan);
+        tvCatSweets = (TextView) findViewById(R.id.tvCatSweets);
+
+        // creating text view list so we can select them all, or deselect.
+        mCategoryList.add(tvCatAsian);
+        mCategoryList.add(tvCatBar);
+        mCategoryList.add(tvCatCoffee);
+        mCategoryList.add(tvCatDairy);
+        mCategoryList.add(tvCatFish);
+        mCategoryList.add(tvCatItalian);
+        mCategoryList.add(tvCatFrench);
+        mCategoryList.add(tvCatMeat);
+        mCategoryList.add(tvCatMediterranean);
+        mCategoryList.add(tvCatMexican);
+        mCategoryList.add(tvCatMiddleEastern);
+        mCategoryList.add(tvCatSandwiches);
+        mCategoryList.add(tvCatSushi);
+        mCategoryList.add(tvCatVegan);
+        mCategoryList.add(tvCatSweets);
+
         // setting onclick for all categories.
-        findViewById(R.id.tvCatAsian).setOnClickListener(new View.OnClickListener() {
+        tvCatAsian.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatBar).setOnClickListener(new View.OnClickListener() {
+        tvCatBar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatCoffee).setOnClickListener(new View.OnClickListener() {
+        tvCatCoffee.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatDairy).setOnClickListener(new View.OnClickListener() {
+        tvCatDairy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatFish).setOnClickListener(new View.OnClickListener() {
+        tvCatFish.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatItalian).setOnClickListener(new View.OnClickListener() {
+        tvCatItalian.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatFrench).setOnClickListener(new View.OnClickListener() {
+        tvCatFrench.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatMeat).setOnClickListener(new View.OnClickListener() {
+        tvCatMeat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatMediterranean).setOnClickListener(new View.OnClickListener() {
+        tvCatMediterranean.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatMexican).setOnClickListener(new View.OnClickListener() {
+        tvCatMexican.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatMiddleEastern).setOnClickListener(new View.OnClickListener() {
+        tvCatMiddleEastern.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatSandwiches).setOnClickListener(new View.OnClickListener() {
+        tvCatSandwiches.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatSushi).setOnClickListener(new View.OnClickListener() {
+        tvCatSushi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatVegan).setOnClickListener(new View.OnClickListener() {
+        tvCatVegan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
-        findViewById(R.id.tvCatSweets).setOnClickListener(new View.OnClickListener() {
+        tvCatSweets.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickSelectedCategory(v);
             }
         });
 
+        // kosher button is a bit different because it is not a category.
+        findViewById(R.id.tvKosher).setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                TextView tv = (TextView) v;
+                if(mIsKosherSelected) {
+                    mIsKosherSelected = false;
+                    tv.setTextAppearance(R.style.Category);
+                    tv.setBackgroundResource(R.drawable.item_category);
+                }
+                else {
+                    mIsKosherSelected = true;
+                    tv.setTextAppearance(R.style.CategorySelected);
+                    tv.setBackgroundResource(R.drawable.item_category_selected);
+                }
+            }
+        });
+
         findViewById(R.id.btnSearchCategory).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(selectedCategories.size() == 0) {
+                if(mSelectedCategories.size() == 0) {
                     Toast.makeText(FrontActivity.this, getString(R.string.no_categories), Toast.LENGTH_SHORT)
                             .show();
                     return;
                 }
                 Intent i = new Intent(FrontActivity.this, RestListActivity.class);
-                i.putExtra(RestListActivity.extraFilter, selectedCategories);
+                i.putExtra(RestListActivity.extraFilter, mSelectedCategories);
+                i.putExtra(RestListActivity.extraIsKosher, mIsKosherSelected);
                 i.putExtra(RestListActivity.extraLocation, mLastLocation);
                 startActivity(i);
             }
@@ -184,18 +251,12 @@ public class FrontActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 List<Restaurant.RestSubType> list = Arrays.asList(Restaurant.RestSubType.values());
-                selectedCategories.clear();
-                selectedCategories.addAll(list);
+                mSelectedCategories.clear();
+                mSelectedCategories.addAll(list);
 
-                LinearLayout layout = (LinearLayout)findViewById(R.id.llSubTypes);
-
-                for(int i=0; i<layout.getChildCount(); i++) {
-                    LinearLayout subLayout = (LinearLayout) layout.getChildAt(i);
-                    for(int j=0; j<3; j++) {
-                        TextView tv = (TextView) subLayout.getChildAt(j);
-                        tv.setTextAppearance(R.style.CategorySelected);
-                        tv.setBackgroundResource(R.drawable.item_category_selected);
-                    }
+                for(TextView tv: mCategoryList) {
+                    tv.setTextAppearance(R.style.CategorySelected);
+                    tv.setBackgroundResource(R.drawable.item_category_selected);
                 }
             }
         });
@@ -203,17 +264,11 @@ public class FrontActivity extends AppCompatActivity implements
         findViewById(R.id.btnDeSelectAll).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                selectedCategories.clear();
+                mSelectedCategories.clear();
 
-                LinearLayout layout = (LinearLayout)findViewById(R.id.llSubTypes);
-
-                for(int i=0; i<layout.getChildCount(); i++) {
-                    LinearLayout subLayout = (LinearLayout) layout.getChildAt(i);
-                    for(int j=0; j<3; j++) {
-                        TextView tv = (TextView) subLayout.getChildAt(j);
-                        tv.setTextAppearance(R.style.Category);
-                        tv.setBackgroundResource(R.drawable.item_category);
-                    }
+                for(TextView tv: mCategoryList) {
+                    tv.setTextAppearance(R.style.Category);
+                    tv.setBackgroundResource(R.drawable.item_category);
                 }
             }
         });
@@ -449,13 +504,13 @@ public class FrontActivity extends AppCompatActivity implements
                 cat = Restaurant.RestSubType.Vegan;
                 break;
         }
-        if(selectedCategories.contains(cat)) {
-            selectedCategories.remove(cat);
+        if(mSelectedCategories.contains(cat)) {
+            mSelectedCategories.remove(cat);
             tv.setTextAppearance(R.style.Category);
             tv.setBackgroundResource(R.drawable.item_category);
          }
         else {
-            selectedCategories.add(cat);
+            mSelectedCategories.add(cat);
             tv.setTextAppearance(R.style.CategorySelected);
             tv.setBackgroundResource(R.drawable.item_category_selected);
         }
@@ -491,6 +546,8 @@ public class FrontActivity extends AppCompatActivity implements
 
                 String name;
                 Restaurant.RestSubType[] subTypes;
+                boolean isKosher;
+                String kosherType;
                 String address;
                 String pic;
                 String lat;
@@ -499,7 +556,20 @@ public class FrontActivity extends AppCompatActivity implements
 
 
                 name = jObj.getString(JSON_NAME_TAG);
+
                 subTypes = Restaurant.RestSubType.findAllSubTypes(jObj.getString(JSON_SUB_TYPE_TAG));
+
+                if(jObj.has(JSON_KOSHER_TAG)) {
+                    isKosher = true;
+                    kosherType = jObj.getString(JSON_KOSHER_TAG);
+                    if(kosherType.equals(getString(R.string.kosher_without_permission)))
+                        isKosher = false;
+                }
+                else {
+                    isKosher = false;
+                    kosherType = "";
+                }
+
                 if(!jObj.has(JSON_ADDRESS_TAG)) {
                     int x = 0;
                     x++;
@@ -512,7 +582,9 @@ public class FrontActivity extends AppCompatActivity implements
                 lng = jObj.getString(JSON_LONG_TAG);
 
 
-                Restaurant rest = new Restaurant(i+1, name, null, subTypes, address,
+                Restaurant rest = new Restaurant(i+1, name, null,
+                        isKosher, kosherType,
+                        subTypes, address,
                         Double.parseDouble(lat), Double.parseDouble(lng), id);
 
                 restList.add(rest);

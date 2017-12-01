@@ -90,11 +90,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:id="@+id/tvCatSushi"
-                android:text="סושי"
-                style="@style/Category"
-                />
-            <TextView
                 android:id="@+id/tvCatFrench"
                 android:text="צרפתי"
                 style="@style/Category"
@@ -102,6 +97,11 @@
             <TextView
                 android:id="@+id/tvCatVegan"
                 android:text="צמחוני-טבעוני"
+                style="@style/Category"
+                />
+            <TextView
+                android:id="@+id/tvCatSandwiches"
+                android:text="כריכים-סלטים"
                 style="@style/Category"
                 />
         </LinearLayout>
@@ -132,8 +132,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:id="@+id/tvCatSandwiches"
-                android:text="כריכים-סלטים"
+                android:id="@+id/tvCatSushi"
+                android:text="סושי"
                 style="@style/Category"
                 />
             <TextView
@@ -144,6 +144,11 @@
             <TextView
                 android:id="@+id/tvCatFish"
                 android:text="דגים"
+                style="@style/Category"
+                />
+            <TextView
+                android:id="@+id/tvCatMiddleEastern"
+                android:text="מזרחי"
                 style="@style/Category"
                 />
         </LinearLayout>
@@ -163,10 +168,9 @@
                 style="@style/Category"
                 />
             <TextView
-                android:id="@+id/tvCatMiddleEastern"
-                android:text="מזרחי"
-                style="@style/Category"
-                />
+                android:id="@+id/tvKosher"
+                android:text="@string/kosher_label"
+                style="@style/Category"/>
         </LinearLayout>
     </LinearLayout>
     <Button

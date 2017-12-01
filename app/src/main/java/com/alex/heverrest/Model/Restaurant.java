@@ -108,6 +108,8 @@ public class Restaurant implements Serializable{
     public String name;
     public RestType[] type;
     public RestSubType[] subType;
+    public boolean isKosher;
+    public String kosherType;
     public String address;
     public double lat;
     public double lng;
@@ -120,12 +122,15 @@ public class Restaurant implements Serializable{
     public String phoneNumber;
     public int picRes;
 
-    public Restaurant(int id, String name, RestType[] restTypes, RestSubType[] restSubTypes,
-                      String address, double lat, double lng, int picRes) {
+    public Restaurant(int id, String name, RestType[] restTypes, boolean isKosher,
+                      String kosherType, RestSubType[] restSubTypes, String address,
+                      double lat, double lng, int picRes) {
         this.id = id;
         this.name = name;
         this.type = restTypes;
         this.subType = restSubTypes;
+        this.isKosher = isKosher;
+        this.kosherType = kosherType;
         this.address = address;
         this.lat = lat;
         this.lng = lng;

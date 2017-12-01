@@ -34,10 +34,11 @@ import java.util.Set;
 public class RestListActivity extends AppCompatActivity  {
 
     public final static String extraFilter = "filter";
+    public final static String extraIsKosher = "isKosher";
     public final static String extraLocation = "location";
-    public final static String extraHashRestList = "hashRestList";
 
     ArrayList<Restaurant.RestSubType> mCatFilter = null;
+    boolean mIsKosher = false;
     Location mLocation;
     ListView mLvRests;
     ArrayList<Restaurant> mRests = new ArrayList<>();
@@ -55,6 +56,10 @@ public class RestListActivity extends AppCompatActivity  {
 
         if (getIntent().getExtras().get(extraFilter) != null) {
             mCatFilter = (ArrayList<Restaurant.RestSubType>) getIntent().getExtras().get(extraFilter);
+        }
+
+        if(getIntent().getExtras().get(extraIsKosher) != null) {
+            mIsKosher = getIntent().getBooleanExtra(extraIsKosher, false);
         }
 
         if(getIntent().getExtras().get(extraLocation) != null) {
@@ -145,7 +150,8 @@ public class RestListActivity extends AppCompatActivity  {
         if(mCatFilter != null) {
             for(Restaurant.RestSubType type: mCatFilter){
                 for(Restaurant r: RestaurantController.getInstance().getHashRestList().get(type))
-                    restsSet.add(r);
+                    if(r.isKosher == mIsKosher)
+                        restsSet.add(r);
             }
         }
 
