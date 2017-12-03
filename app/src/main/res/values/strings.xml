@@ -14,6 +14,6 @@
     <string name="label">מה בא לך ?</string>
     <string name="deselect_all">בטל הכל</string>
 
-    <string name="kosher_label">כשר</string>
+    <string name="kosher_label">רק כשר</string>
     <string name="kosher_without_permission">תפריט כשר ללא תעודה</string>
 </resources>
