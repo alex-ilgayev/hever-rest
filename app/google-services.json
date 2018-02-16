@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "571606122765",
+    "firebase_url": "https://heverrest-1484911690259.firebaseio.com",
+    "project_id": "heverrest-1484911690259",
+    "storage_bucket": "heverrest-1484911690259.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:571606122765:android:cef0786798b7a113",
+        "android_client_info": {
+          "package_name": "com.alex.heverrest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "571606122765-s8ael7augpdpa5culf86pb3qb010hg49.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alex.heverrest",
+            "certificate_hash": "c2ac6ada62afce4df019c509a7211f182226aa91"
+          }
+        },
+        {
+          "client_id": "571606122765-ue15lfkn8fkguik910m4q30e7bkahbq0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUshnx4iAu5e7X_QnxybIwfR5sRAOBKIc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "571606122765-ue15lfkn8fkguik910m4q30e7bkahbq0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -120,11 +120,11 @@ public class Restaurant implements Serializable{
     public int openShabat;
     public int closeShabar;
     public String phoneNumber;
-    public int picRes;
+    public String pic;
 
     public Restaurant(int id, String name, RestType[] restTypes, boolean isKosher,
                       String kosherType, RestSubType[] restSubTypes, String address,
-                      double lat, double lng, int picRes) {
+                      double lat, double lng, String pic) {
         this.id = id;
         this.name = name;
         this.type = restTypes;
@@ -134,7 +134,7 @@ public class Restaurant implements Serializable{
         this.address = address;
         this.lat = lat;
         this.lng = lng;
-        this.picRes = picRes;
+        this.pic = pic;
     }
 
     public float distanceTo(Location l) {

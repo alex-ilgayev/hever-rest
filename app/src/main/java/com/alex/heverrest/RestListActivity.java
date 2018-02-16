@@ -2,11 +2,14 @@ package com.alex.heverrest;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -203,7 +206,12 @@ public class RestListActivity extends AppCompatActivity  {
             // Populate the data into the template view using the data object
             tvName.setText(rest.name);
             tvAddress.setText(rest.address);
-            ivPic.setImageResource(rest.picRes);
+
+            // convert base64 to real image
+            byte[] picByteArr = Base64.decode(rest.pic, Base64.DEFAULT);
+            Bitmap bmp = BitmapFactory.decodeByteArray(picByteArr, 0, picByteArr.length);
+            ivPic.setImageBitmap(bmp);
+
             if(mLocation != null)
                 tvDistance.setText(String.format("%.1f",rest.distanceTo(mLocation)) + " ק\"מ");
 

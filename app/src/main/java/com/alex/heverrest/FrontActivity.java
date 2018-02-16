@@ -1,9 +1,12 @@
 package com.alex.heverrest;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +27,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,7 +42,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +56,9 @@ public class FrontActivity extends AppCompatActivity implements
         LocationListener{
 
     public static final String TAG = "hever-rest";
+    public static final String PREFS = "com.alex.heverrest";
+    public static final String PREF_LAST_UPDATED_TIMESTAMP = "timestamp";
+    public static final String PREF_DATA = "data";
 
     private static final String JSON_NAME_TAG = "name";
     private static final String JSON_SUB_TYPE_TAG = "sub_type";
@@ -73,6 +87,8 @@ public class FrontActivity extends AppCompatActivity implements
     TextView tvCatVegan;
     TextView tvCatSweets;
     ArrayList<TextView> mCategoryList = new ArrayList<>();
+
+    SharedPreferences mPrefs;
 
     Location mLastLocation;
     LocationRequest mLoationRequest = null;
@@ -273,7 +289,9 @@ public class FrontActivity extends AppCompatActivity implements
             }
         });
 
-        populateAllRestaurant();
+        mPrefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+
+        new UpdateRestDatabaseTask().execute();
 
         mClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -516,34 +534,180 @@ public class FrontActivity extends AppCompatActivity implements
         }
     }
 
-    protected void populateAllRestaurant() {
-        if(RestaurantController.getInstance().getIsPopulated())
-            return;
-        ArrayList<Restaurant> restList = new ArrayList<>();
-        HashMap<Restaurant.RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
+//    protected void populateAllRestaurant() {
+//        // checking if update needed, and updates.
+//        new UpdateRestDatabaseTask().execute();
+//
+//        if(RestaurantController.getInstance().getIsPopulated())
+//            return;
+//        ArrayList<Restaurant> restList = new ArrayList<>();
+//        HashMap<Restaurant.RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
+//
+//        try {
+//            InputStream is = getResources().openRawResource(R.raw.json_rests);
+//            Writer writer = new StringWriter();
+//            char[] buffer = new char[1024];
+//
+//            try {
+//                Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+//                int n;
+//                while ((n = reader.read(buffer)) != -1) {
+//                    writer.write(buffer, 0, n);
+//                }
+//            } finally {
+//                is.close();
+//            }
+//
+//            String jsonString = writer.toString();
+//
+//            JSONArray jArr = new JSONArray(jsonString);
+//
+//            for(int i=0; i<jArr.length(); i++) {
+//                JSONObject jObj = jArr.getJSONObject(i);
+//
+//                String name;
+//                Restaurant.RestSubType[] subTypes;
+//                boolean isKosher;
+//                String kosherType;
+//                String address;
+//                String pic;
+//                String lat;
+//                String lng;
+//
+//
+//
+//                name = jObj.getString(JSON_NAME_TAG);
+//
+//                subTypes = Restaurant.RestSubType.findAllSubTypes(jObj.getString(JSON_SUB_TYPE_TAG));
+//
+//                if(jObj.has(JSON_KOSHER_TAG)) {
+//                    isKosher = true;
+//                    kosherType = jObj.getString(JSON_KOSHER_TAG);
+//                    if(kosherType.equals(getString(R.string.kosher_without_permission)))
+//                        isKosher = false;
+//                }
+//                else {
+//                    isKosher = false;
+//                    kosherType = "";
+//                }
+//
+//                if(!jObj.has(JSON_ADDRESS_TAG)) {
+//                    int x = 0;
+//                    x++;
+//                    continue;
+//                }
+//                address = jObj.getString(JSON_ADDRESS_TAG);
+//                pic = jObj.getString(JSON_PIC_TAG);
+//                final int id = getResources().getIdentifier(pic, "drawable", getPackageName());
+//                lat = jObj.getString(JSON_LAT_TAG);
+//                lng = jObj.getString(JSON_LONG_TAG);
+//
+//
+//                Restaurant rest = new Restaurant(i+1, name, null,
+//                        isKosher, kosherType,
+//                        subTypes, address,
+//                        Double.parseDouble(lat), Double.parseDouble(lng), id);
+//
+//                restList.add(rest);
+//
+//                for(Restaurant.RestSubType type: rest.subType) {
+//                    if(!hashRestList.containsKey(type))
+//                        hashRestList.put(type, new ArrayList<Restaurant>());
+//                    hashRestList.get(type).add(rest);
+//                }
+//            }
+//        } catch(Exception e) {
+//            e.printStackTrace();
+//            Toast.makeText(this, getString(R.string.json_error), Toast.LENGTH_LONG).show();
+//        }
+//        RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
+//    }
 
-        try {
-            InputStream is = getResources().openRawResource(R.raw.json_rests);
-            Writer writer = new StringWriter();
-            char[] buffer = new char[1024];
+    private class UpdateRestDatabaseTask extends AsyncTask<Void, Void, Void> {
+        private Context ctx;
 
-            try {
-                Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                int n;
-                while ((n = reader.read(buffer)) != -1) {
-                    writer.write(buffer, 0, n);
-                }
-            } finally {
-                is.close();
+        UpdateRestDatabaseTask(Context ctx) {
+            this.ctx = ctx;
+        }
+
+        protected Void doInBackground(Void... urls) {
+            final FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+            // first checking if update is needed accoring to timestamp key.
+            // if no timestamp entry in shared preferences, means no update has been done.
+            final String lastUpdate = mPrefs.getString(PREF_LAST_UPDATED_TIMESTAMP, null);
+            if(lastUpdate == null) {
+                getDatabase(ctx);
+                return null;
             }
 
-            String jsonString = writer.toString();
+            DatabaseReference ref = database.getReference("timestamp");
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Date dateRemote, dateLocal;
+                    String dateStr = (String) dataSnapshot.getValue();
+                    SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+                    try {
+                        dateRemote = format.parse(dateStr);
+                        dateLocal = format.parse(lastUpdate);
+                        if(dateRemote.compareTo(dateLocal) > 0) {
+                            // new update is existed
+                            getDatabase();
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                        Log.w(TAG, e.getMessage());
+                    }
+                }
 
-            JSONArray jArr = new JSONArray(jsonString);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, databaseError.toException());
+                }
+            });
 
-            for(int i=0; i<jArr.length(); i++) {
-                JSONObject jObj = jArr.getJSONObject(i);
+            return null;
+        }
 
+        protected void onProgressUpdate(Void... progress) {
+//            setProgressPercent(progress[0]);
+        }
+
+        protected void onPostExecute(Void result) {
+//            showDialog("Downloaded " + result + " bytes");
+        }
+
+        protected void getDatabase() {
+            final Context ctx = this.ctx;
+//            mPrefs.edit().putString(PREF_LAST_UPDATED_TIMESTAMP, "15/02/2018").commit();
+            final FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference ref = database.getReference("rests");
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Object o = dataSnapshot.getValue();
+                    populateAllRestaurants((ArrayList)o, ctx);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, databaseError.toException());
+                }
+            });
+        }
+
+        protected void populateAllRestaurants(ArrayList<HashMap<String, String>> data) {
+            ctx.2
+            if(RestaurantController.getInstance().getIsPopulated())
+                return;
+            ArrayList<Restaurant> restList = new ArrayList<>();
+            HashMap<Restaurant.RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
+
+            for(int i=0; i<data.size(); i++) {
+                HashMap<String, String> obj = data.get(i);
+
+                // rest data
                 String name;
                 Restaurant.RestSubType[] subTypes;
                 boolean isKosher;
@@ -553,15 +717,12 @@ public class FrontActivity extends AppCompatActivity implements
                 String lat;
                 String lng;
 
+                name = obj.get(JSON_NAME_TAG);
+                subTypes = Restaurant.RestSubType.findAllSubTypes(obj.get(JSON_SUB_TYPE_TAG));
 
-
-                name = jObj.getString(JSON_NAME_TAG);
-
-                subTypes = Restaurant.RestSubType.findAllSubTypes(jObj.getString(JSON_SUB_TYPE_TAG));
-
-                if(jObj.has(JSON_KOSHER_TAG)) {
+                if(obj.containsKey(JSON_KOSHER_TAG)) {
                     isKosher = true;
-                    kosherType = jObj.getString(JSON_KOSHER_TAG);
+                    kosherType = obj.get(JSON_KOSHER_TAG);
                     if(kosherType.equals(getString(R.string.kosher_without_permission)))
                         isKosher = false;
                 }
@@ -570,22 +731,21 @@ public class FrontActivity extends AppCompatActivity implements
                     kosherType = "";
                 }
 
-                if(!jObj.has(JSON_ADDRESS_TAG)) {
+                if(!obj.containsKey(JSON_ADDRESS_TAG)) {
                     int x = 0;
                     x++;
                     continue;
                 }
-                address = jObj.getString(JSON_ADDRESS_TAG);
-                pic = jObj.getString(JSON_PIC_TAG);
-                final int id = getResources().getIdentifier(pic, "drawable", getPackageName());
-                lat = jObj.getString(JSON_LAT_TAG);
-                lng = jObj.getString(JSON_LONG_TAG);
+                address = obj.get(JSON_ADDRESS_TAG);
+                pic = obj.get(JSON_PIC_TAG);
+                lat = obj.get(JSON_LAT_TAG);
+                lng = obj.get(JSON_LONG_TAG);
 
 
                 Restaurant rest = new Restaurant(i+1, name, null,
                         isKosher, kosherType,
                         subTypes, address,
-                        Double.parseDouble(lat), Double.parseDouble(lng), id);
+                        Double.parseDouble(lat), Double.parseDouble(lng), pic);
 
                 restList.add(rest);
 
@@ -595,10 +755,7 @@ public class FrontActivity extends AppCompatActivity implements
                     hashRestList.get(type).add(rest);
                 }
             }
-        } catch(Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, getString(R.string.json_error), Toast.LENGTH_LONG).show();
+            RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
         }
-        RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
     }
 }
