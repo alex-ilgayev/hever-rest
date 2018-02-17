@@ -16,4 +16,7 @@
 
     <string name="kosher_label">רק כשר</string>
     <string name="kosher_without_permission">תפריט כשר ללא תעודה</string>
+
+    <string name="database_update_success">בוצע עדכון למסעדות</string>
+    <string name="database_first_update">מבצע עדכון ראשוני</string>
 </resources>

@@ -7,13 +7,15 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,23 +34,22 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class FrontActivity extends AppCompatActivity implements
@@ -87,6 +88,8 @@ public class FrontActivity extends AppCompatActivity implements
     TextView tvCatVegan;
     TextView tvCatSweets;
     ArrayList<TextView> mCategoryList = new ArrayList<>();
+    ProgressBar pbDatabaseUpdate;
+    Button btnSearchCategory;
 
     SharedPreferences mPrefs;
 
@@ -118,6 +121,8 @@ public class FrontActivity extends AppCompatActivity implements
         tvCatSushi = (TextView) findViewById(R.id.tvCatSushi);
         tvCatVegan = (TextView) findViewById(R.id.tvCatVegan);
         tvCatSweets = (TextView) findViewById(R.id.tvCatSweets);
+        pbDatabaseUpdate = (ProgressBar) findViewById(R.id.pbDatabaseUpdate);
+        btnSearchCategory = (Button) findViewById(R.id.btnSearchCategory);
 
         // creating text view list so we can select them all, or deselect.
         mCategoryList.add(tvCatAsian);
@@ -247,7 +252,7 @@ public class FrontActivity extends AppCompatActivity implements
             }
         });
 
-        findViewById(R.id.btnSearchCategory).setOnClickListener(new View.OnClickListener() {
+        btnSearchCategory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(mSelectedCategories.size() == 0) {
@@ -291,13 +296,123 @@ public class FrontActivity extends AppCompatActivity implements
 
         mPrefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
-        new UpdateRestDatabaseTask().execute();
+        /**
+         * FLOW:
+         *
+         * is already populated ?
+         *      yes
+         *          finishing
+         *      have cache?
+         *          no
+         *              retreiving remote database
+         *              populating
+         *              storing cache
+         *          yes
+         *              populating using cache
+         *              retreiving date
+         *              if newer?
+         *                  yes
+         *                      retreiving remote database
+         *                      populating
+         *                      storing cache
+         *                  no
+         *                      finishing
+         */
+
+        if(RestaurantController.getInstance().getIsPopulated()) {
+            // happens when entering multiple timese without quitting application.
+            Log.i(TAG, "already populated");
+            pbDatabaseUpdate.setVisibility(View.INVISIBLE);
+            btnSearchCategory.setVisibility(View.VISIBLE);
+        } else {
+            // first checking if update is needed according to timestamp key.
+            // if no timestamp entry in shared preferences, means no update has been done.
+            String lastUpdate = mPrefs.getString(PREF_LAST_UPDATED_TIMESTAMP, null);
+            String data = mPrefs.getString(PREF_DATA, null);
+            if(lastUpdate != null && data != null) {
+                // populating local data
+                Log.i(TAG, "populating local data");
+
+                Type type = new TypeToken<List<HashMap<String, String>>>(){}.getType();
+                ArrayList rests = new Gson().fromJson(data, type);
+                populateAllRestaurants(rests);
+            } else {
+                Log.i(TAG, "first usage");
+                Toast.makeText(this, getString(R.string.database_first_update),
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            new UpdateRestDatabaseTask(this).execute();
+        }
 
         mClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
 //                .addOnConnectionlFailedListener(this)
                 .addApi(LocationServices.API)
                 .addApi(AppIndex.API).build();
+    }
+
+    private void populateAllRestaurants(ArrayList<HashMap<String, String>> data) {
+        ArrayList<Restaurant> restList = new ArrayList<>();
+        HashMap<Restaurant.RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
+
+        for(int i=0; i<data.size(); i++) {
+            HashMap<String, String> obj = data.get(i);
+
+            // rest data
+            String name;
+            Restaurant.RestSubType[] subTypes;
+            boolean isKosher;
+            String kosherType;
+            String address;
+            String pic;
+            String lat;
+            String lng;
+
+            name = obj.get(JSON_NAME_TAG);
+            subTypes = Restaurant.RestSubType.findAllSubTypes(obj.get(JSON_SUB_TYPE_TAG));
+
+            if(obj.containsKey(JSON_KOSHER_TAG)) {
+                isKosher = true;
+                kosherType = obj.get(JSON_KOSHER_TAG);
+                if(kosherType.equals(getString(R.string.kosher_without_permission)))
+                    isKosher = false;
+            }
+            else {
+                isKosher = false;
+                kosherType = "";
+            }
+
+            if(!obj.containsKey(JSON_ADDRESS_TAG)) {
+                int x = 0;
+                x++;
+                continue;
+            }
+            address = obj.get(JSON_ADDRESS_TAG);
+            pic = obj.get(JSON_PIC_TAG);
+            lat = obj.get(JSON_LAT_TAG);
+            lng = obj.get(JSON_LONG_TAG);
+
+
+            Restaurant rest = new Restaurant(i+1, name, null,
+                    isKosher, kosherType,
+                    subTypes, address,
+                    Double.parseDouble(lat), Double.parseDouble(lng), pic);
+
+            restList.add(rest);
+
+            for(Restaurant.RestSubType type: rest.subType) {
+                if(!hashRestList.containsKey(type))
+                    hashRestList.put(type, new ArrayList<Restaurant>());
+                hashRestList.get(type).add(rest);
+            }
+        }
+        RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
+
+        Log.i(TAG, "finished populating restaurants");
+
+        pbDatabaseUpdate.setVisibility(View.INVISIBLE);
+        btnSearchCategory.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -624,12 +739,17 @@ public class FrontActivity extends AppCompatActivity implements
 //    }
 
     private class UpdateRestDatabaseTask extends AsyncTask<Void, Void, Void> {
-        private Context ctx;
+        private final Context _ctx;
 
         UpdateRestDatabaseTask(Context ctx) {
-            this.ctx = ctx;
+            this._ctx = ctx;
         }
 
+        /**
+         * checking if there is newer timestamp in remote server.
+         * if remote date is newer then local date, or local date doesn't exists,
+         * retrieving remote database, and storing in cache.
+         */
         protected Void doInBackground(Void... urls) {
             final FirebaseDatabase database = FirebaseDatabase.getInstance();
 
@@ -637,7 +757,8 @@ public class FrontActivity extends AppCompatActivity implements
             // if no timestamp entry in shared preferences, means no update has been done.
             final String lastUpdate = mPrefs.getString(PREF_LAST_UPDATED_TIMESTAMP, null);
             if(lastUpdate == null) {
-                getDatabase(ctx);
+                Log.i(TAG, "first time updating database");
+                getRemoteDatabase();
                 return null;
             }
 
@@ -653,7 +774,16 @@ public class FrontActivity extends AppCompatActivity implements
                         dateLocal = format.parse(lastUpdate);
                         if(dateRemote.compareTo(dateLocal) > 0) {
                             // new update is existed
-                            getDatabase();
+                            Log.i(TAG, "newer database existing in remote server, updating.");
+                            getRemoteDatabase();
+                        } else {
+                            // populating the cache data stored in application.
+                            Log.i(TAG, "no new data in remote server");
+                            String data = mPrefs.getString(PREF_DATA, null);
+                            if(data == null) {
+                                Log.e(TAG, "no data error");
+                                return;
+                            }
                         }
                     } catch (ParseException e) {
                         e.printStackTrace();
@@ -670,24 +800,29 @@ public class FrontActivity extends AppCompatActivity implements
             return null;
         }
 
-        protected void onProgressUpdate(Void... progress) {
-//            setProgressPercent(progress[0]);
-        }
-
-        protected void onPostExecute(Void result) {
-//            showDialog("Downloaded " + result + " bytes");
-        }
-
-        protected void getDatabase() {
-            final Context ctx = this.ctx;
+        private void getRemoteDatabase() {
 //            mPrefs.edit().putString(PREF_LAST_UPDATED_TIMESTAMP, "15/02/2018").commit();
             final FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference ref = database.getReference("rests");
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Object o = dataSnapshot.getValue();
-                    populateAllRestaurants((ArrayList)o, ctx);
+                    ArrayList data = (ArrayList) dataSnapshot.getValue();
+                    Log.i(TAG, "got the remote database. now populating");
+                    populateAllRestaurants(data);
+                    storeCache(data);
+
+                    // posting success message
+                    Handler handler = new Handler(FrontActivity.this.getMainLooper());
+
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(FrontActivity.this, getString(R.string.database_update_success),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    handler.post(runnable);
                 }
 
                 @Override
@@ -697,65 +832,23 @@ public class FrontActivity extends AppCompatActivity implements
             });
         }
 
-        protected void populateAllRestaurants(ArrayList<HashMap<String, String>> data) {
-            ctx.2
-            if(RestaurantController.getInstance().getIsPopulated())
-                return;
-            ArrayList<Restaurant> restList = new ArrayList<>();
-            HashMap<Restaurant.RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
+        /**
+         * after a new database has been retrieved, it is saved in cache for later use
+         * saving the array as json
+         * saving current date.
+         * @param data - the data to be saved
+         */
+        private void storeCache(ArrayList data) {
+            String strData = new Gson().toJson(data);
 
-            for(int i=0; i<data.size(); i++) {
-                HashMap<String, String> obj = data.get(i);
+            SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+            String strDate = format.format(Calendar.getInstance().getTime());
 
-                // rest data
-                String name;
-                Restaurant.RestSubType[] subTypes;
-                boolean isKosher;
-                String kosherType;
-                String address;
-                String pic;
-                String lat;
-                String lng;
-
-                name = obj.get(JSON_NAME_TAG);
-                subTypes = Restaurant.RestSubType.findAllSubTypes(obj.get(JSON_SUB_TYPE_TAG));
-
-                if(obj.containsKey(JSON_KOSHER_TAG)) {
-                    isKosher = true;
-                    kosherType = obj.get(JSON_KOSHER_TAG);
-                    if(kosherType.equals(getString(R.string.kosher_without_permission)))
-                        isKosher = false;
-                }
-                else {
-                    isKosher = false;
-                    kosherType = "";
-                }
-
-                if(!obj.containsKey(JSON_ADDRESS_TAG)) {
-                    int x = 0;
-                    x++;
-                    continue;
-                }
-                address = obj.get(JSON_ADDRESS_TAG);
-                pic = obj.get(JSON_PIC_TAG);
-                lat = obj.get(JSON_LAT_TAG);
-                lng = obj.get(JSON_LONG_TAG);
-
-
-                Restaurant rest = new Restaurant(i+1, name, null,
-                        isKosher, kosherType,
-                        subTypes, address,
-                        Double.parseDouble(lat), Double.parseDouble(lng), pic);
-
-                restList.add(rest);
-
-                for(Restaurant.RestSubType type: rest.subType) {
-                    if(!hashRestList.containsKey(type))
-                        hashRestList.put(type, new ArrayList<Restaurant>());
-                    hashRestList.get(type).add(rest);
-                }
-            }
-            RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
+            SharedPreferences.Editor editor = mPrefs.edit();
+            editor.putString(PREF_LAST_UPDATED_TIMESTAMP, strDate);
+            editor.putString(PREF_DATA, strData);
+            editor.commit();
+            Log.i(TAG, "new data is stored");
         }
     }
 }
