@@ -11,6 +11,16 @@
     android:background="#c8d4c7"
     tools:context="com.alex.heverrest.FrontActivity">
 
+    <Button
+        android:id="@+id/btnContact"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="7dp"
+        android:layout_marginEnd="7dp"
+        android:background="@drawable/chat_ico"/>
+
     <ImageView
         android:id="@+id/ivIcon"
         android:layout_width="150dp"

@@ -19,4 +19,7 @@
 
     <string name="database_update_success">בוצע עדכון למסעדות</string>
     <string name="database_first_update">מבצע עדכון ראשוני</string>
+
+    <string name="dialog_label">כל המידע באפליקציה לקוח מהאתר הרשמי של מועדון חבר.</string>
+    <string name="dialog_label_2">אם בכל זאת מצאתם טעות במידע, נשמח אם תוכלו לעדכן זאת ובכך לעזור לכולם</string>
 </resources>
