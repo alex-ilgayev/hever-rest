@@ -16,8 +16,10 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -64,6 +66,9 @@ public class FrontActivity extends AppCompatActivity implements
     public static final String PREFS = "com.alex.heverrest";
     public static final String PREF_LAST_UPDATED_TIMESTAMP = "timestamp";
     public static final String PREF_DATA = "data";
+    public static final String FIREBASE_TIMESTAMP = "timestamp";
+    public static final String FIREBASE_RESTS = "rests";
+    public static final String FIREBASE_REVIEWS = "reviews";
 
     private static final String JSON_NAME_TAG = "name";
     private static final String JSON_SUB_TYPE_TAG = "sub_type";
@@ -663,22 +668,38 @@ public class FrontActivity extends AppCompatActivity implements
     }
 
     public void openContactDialog() {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                getString(R.string.dialog_label_2));
-        builder.setView(R.layout.dialog);
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        final View view = inflater.inflate(R.layout.dialog, null);
+        builder.setView(view);
+        final EditText etContent = (EditText) view.findViewById(R.id.etContent);
+        builder.setPositiveButton("שלח", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        //MyActivity.this.finish();
+                        String content = etContent.getText().toString();
+                        if(!content.trim().equals(""))
+                            FrontActivity.this.postReview(content.trim());
                     }
                 })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                .setNegativeButton("בטל", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        //dialog.cancel();
+                        dialog.cancel();
                     }
                 });
 
         AlertDialog alertdialog = builder.create();
         alertdialog.show();
+    }
+
+    public void postReview(String review) {
+        Date currDate = Calendar.getInstance().getTime();
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy/hh-mm-ss");
+        String currDateStr = format.format(currDate);
+
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference ref = database.getReference(FIREBASE_REVIEWS + "/" + currDateStr);
+        ref.setValue(review);
+        Toast.makeText(this, "נשלח", Toast.LENGTH_SHORT).show();
     }
 
 //    protected void populateAllRestaurant() {
@@ -794,7 +815,7 @@ public class FrontActivity extends AppCompatActivity implements
                 return null;
             }
 
-            DatabaseReference ref = database.getReference("timestamp");
+            DatabaseReference ref = database.getReference(FIREBASE_TIMESTAMP);
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -835,7 +856,7 @@ public class FrontActivity extends AppCompatActivity implements
         private void getRemoteDatabase() {
 //            mPrefs.edit().putString(PREF_LAST_UPDATED_TIMESTAMP, "15/02/2018").commit();
             final FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference ref = database.getReference("rests");
+            DatabaseReference ref = database.getReference(FIREBASE_RESTS);
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
