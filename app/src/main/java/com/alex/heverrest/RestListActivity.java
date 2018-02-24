@@ -10,7 +10,6 @@ import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,9 +36,9 @@ import java.util.Set;
 
 public class RestListActivity extends AppCompatActivity  {
 
-    public final static String extraFilter = "filter";
-    public final static String extraIsKosher = "isKosher";
-    public final static String extraLocation = "location";
+    public final static String EXTRA_FILTER = "filter";
+    public final static String EXTRA_IS_KOSHER = "isKosher";
+    public final static String EXTRA_LOCATION = "location";
 
     ArrayList<Restaurant.RestSubType> mCatFilter = null;
     boolean mIsKosher = false;
@@ -58,16 +57,16 @@ public class RestListActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (getIntent().getExtras().get(extraFilter) != null) {
-            mCatFilter = (ArrayList<Restaurant.RestSubType>) getIntent().getExtras().get(extraFilter);
+        if (getIntent().getExtras().get(EXTRA_FILTER) != null) {
+            mCatFilter = (ArrayList<Restaurant.RestSubType>) getIntent().getExtras().get(EXTRA_FILTER);
         }
 
-        if(getIntent().getExtras().get(extraIsKosher) != null) {
-            mIsKosher = getIntent().getBooleanExtra(extraIsKosher, false);
+        if(getIntent().getExtras().get(EXTRA_IS_KOSHER) != null) {
+            mIsKosher = getIntent().getBooleanExtra(EXTRA_IS_KOSHER, false);
         }
 
-        if(getIntent().getExtras().get(extraLocation) != null) {
-            mLocation = (Location) getIntent().getExtras().get(extraLocation);
+        if(getIntent().getExtras().get(EXTRA_LOCATION) != null) {
+            mLocation = (Location) getIntent().getExtras().get(EXTRA_LOCATION);
         }
 
         checkLocationValidity();

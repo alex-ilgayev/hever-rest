@@ -1,11 +1,11 @@
 package com.alex.heverrest;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -20,7 +20,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,19 +31,22 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -53,9 +55,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 
 
 public class FrontActivity extends AppCompatActivity implements
@@ -105,6 +106,8 @@ public class FrontActivity extends AppCompatActivity implements
 
     Location mLastLocation;
     LocationRequest mLoationRequest = null;
+    Place mSelectedGooglePlace = null;
+    PlaceAutocompleteFragment autocompleteFragment;
 
     ArrayList<Restaurant.RestSubType> mSelectedCategories = new ArrayList();
     boolean mIsKosherSelected = false;
@@ -278,10 +281,20 @@ public class FrontActivity extends AppCompatActivity implements
                             .show();
                     return;
                 }
+                Location location;
+                // check if selected different location. if not so passing current location.
+                if(mSelectedGooglePlace != null) {
+                    location = new Location("");
+                    location.setLatitude(mSelectedGooglePlace.getLatLng().latitude);
+                    location.setLongitude(mSelectedGooglePlace.getLatLng().longitude);
+                } else {
+                    location = mLastLocation;
+                }
+
                 Intent i = new Intent(FrontActivity.this, RestListActivity.class);
-                i.putExtra(RestListActivity.extraFilter, mSelectedCategories);
-                i.putExtra(RestListActivity.extraIsKosher, mIsKosherSelected);
-                i.putExtra(RestListActivity.extraLocation, mLastLocation);
+                i.putExtra(RestListActivity.EXTRA_FILTER, mSelectedCategories);
+                i.putExtra(RestListActivity.EXTRA_IS_KOSHER, mIsKosherSelected);
+                i.putExtra(RestListActivity.EXTRA_LOCATION, location);
                 startActivity(i);
             }
         });
@@ -367,7 +380,36 @@ public class FrontActivity extends AppCompatActivity implements
                 .addConnectionCallbacks(this)
 //                .addOnConnectionlFailedListener(this)
                 .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
                 .addApi(AppIndex.API).build();
+
+        autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        autocompleteFragment.setHint(getString(R.string.autocomplete_hint));
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                mSelectedGooglePlace = place;
+            }
+
+            @Override
+            public void onError(Status status) {
+                Log.i(TAG, "An error occurred: " + status);
+                mSelectedGooglePlace = null;
+            }
+        });
+
+        autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        autocompleteFragment.setText("");
+                        view.setVisibility(View.GONE);
+                        mSelectedGooglePlace = null;
+                    }
+                });
     }
 
     private void populateAllRestaurants(ArrayList<HashMap<String, String>> data) {
@@ -445,18 +487,14 @@ public class FrontActivity extends AppCompatActivity implements
             return;
         }
 
+        // has permission, change autocomplete text.
+        autocompleteFragment.setHint(getString(R.string.autocomplete_hint_current_location));
+
         if(!mClient.isConnected())
             mClient.connect();
 
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mClient);
-
-        if (mLastLocation != null) {
-            String lat = String.valueOf(mLastLocation.getLatitude());
-            String lng = String.valueOf(mLastLocation.getLongitude());
-//            Toast.makeText(this, String.valueOf(lat) + " " + String.valueOf(lng)
-//                    + " " + String.valueOf(mLastLocation.getAccuracy()), Toast.LENGTH_LONG).show();
-        }
 
         if(mLoationRequest == null) {
             mLoationRequest = new LocationRequest();
