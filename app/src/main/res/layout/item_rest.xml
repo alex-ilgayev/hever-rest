@@ -16,7 +16,7 @@
             android:id="@+id/ivPic"
             android:layout_width="100dp"
             android:layout_height="match_parent"
-            android:src="@drawable/r1"
+            android:src="@drawable/teamim_default"
             android:padding="10dp"/>
         <LinearLayout
             android:layout_width="wrap_content"

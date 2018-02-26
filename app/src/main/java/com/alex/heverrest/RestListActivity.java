@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -26,7 +27,9 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -209,6 +212,10 @@ public class RestListActivity extends AppCompatActivity  {
             // convert base64 to real image
             byte[] picByteArr = Base64.decode(rest.pic, Base64.DEFAULT);
             Bitmap bmp = BitmapFactory.decodeByteArray(picByteArr, 0, picByteArr.length);
+
+            // settings image
+//            Context ctx = RestListActivity.this;
+//            Picasso.with(ctx).load(getImageUri(ctx, bmp)).into(ivPic);
             ivPic.setImageBitmap(bmp);
 
             if(mLocation != null)
@@ -227,6 +234,13 @@ public class RestListActivity extends AppCompatActivity  {
             // Return the completed view to render on screen
             return convertView;
 
+        }
+
+        public Uri getImageUri(Context inContext, Bitmap inImage) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+            return Uri.parse(path);
         }
 
     }
