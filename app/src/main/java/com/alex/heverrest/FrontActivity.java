@@ -444,8 +444,7 @@ public class FrontActivity extends AppCompatActivity implements
             }
 
             if(!obj.containsKey(JSON_ADDRESS_TAG)) {
-                int x = 0;
-                x++;
+                Log.i(TAG, "received rest without address.");
                 continue;
             }
             address = obj.get(JSON_ADDRESS_TAG);
@@ -470,6 +469,8 @@ public class FrontActivity extends AppCompatActivity implements
         RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
 
         Log.i(TAG, "finished populating restaurants");
+        String msg = "populated " + restList.size() + " restaurants.";
+        Log.i(TAG, msg);
 
         pbDatabaseUpdate.setVisibility(View.INVISIBLE);
         btnSearchCategory.setVisibility(View.VISIBLE);
