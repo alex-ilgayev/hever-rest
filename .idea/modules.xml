@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://D:\Projects\hever-rest\app\app.iml" filepath="D:\Projects\hever-rest\app\app.iml" />
       <module fileurl="file://$PROJECT_DIR$/hever-rest.iml" filepath="$PROJECT_DIR$/hever-rest.iml" />
+      <module fileurl="file://D:\Projects\hever-rest\hever-rest.iml" filepath="D:\Projects\hever-rest\hever-rest.iml" />
     </modules>
   </component>
 </project>
