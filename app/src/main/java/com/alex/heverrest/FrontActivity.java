@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -26,19 +25,23 @@ import android.widget.Toast;
 
 import com.alex.heverrest.Controller.RestaurantController;
 import com.alex.heverrest.Model.Restaurant;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.Places;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -56,7 +59,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 
 public class FrontActivity extends AppCompatActivity implements
@@ -70,6 +72,8 @@ public class FrontActivity extends AppCompatActivity implements
     public static final String FIREBASE_TIMESTAMP = "timestamp";
     public static final String FIREBASE_RESTS = "rests";
     public static final String FIREBASE_REVIEWS = "reviews";
+
+    public static final String API_KEY = "AIzaSyD-mIfTtSyyCXwpZxYhhoaIZpSUCrXmyAY";
 
     private static final String JSON_NAME_TAG = "name";
     private static final String JSON_SUB_TYPE_TAG = "sub_type";
@@ -104,39 +108,39 @@ public class FrontActivity extends AppCompatActivity implements
 
     SharedPreferences mPrefs;
 
+    FusedLocationProviderClient mFusedLocationClient;
+    LocationCallback mLocationCallback;
     Location mLastLocation;
     LocationRequest mLoationRequest = null;
     Place mSelectedGooglePlace = null;
-    PlaceAutocompleteFragment autocompleteFragment;
+    AutocompleteSupportFragment autocompleteFragment;
 
     ArrayList<Restaurant.RestSubType> mSelectedCategories = new ArrayList();
     boolean mIsKosherSelected = false;
-
-    private GoogleApiClient mClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_front);
 
-        tvCatAsian = (TextView) findViewById(R.id.tvCatAsian);
-        tvCatBar = (TextView) findViewById(R.id.tvCatBar);
-        tvCatCoffee = (TextView) findViewById(R.id.tvCatCoffee);
-        tvCatDairy = (TextView) findViewById(R.id.tvCatDairy);
-        tvCatFish = (TextView) findViewById(R.id.tvCatFish);
-        tvCatItalian = (TextView) findViewById(R.id.tvCatItalian);
-        tvCatFrench = (TextView) findViewById(R.id.tvCatFrench);
-        tvCatMeat = (TextView) findViewById(R.id.tvCatMeat);
-        tvCatMediterranean = (TextView) findViewById(R.id.tvCatMediterranean);
-        tvCatMexican = (TextView) findViewById(R.id.tvCatMexican);
-        tvCatMiddleEastern = (TextView) findViewById(R.id.tvCatMiddleEastern);
-        tvCatSandwiches = (TextView) findViewById(R.id.tvCatSandwiches);
-        tvCatSushi = (TextView) findViewById(R.id.tvCatSushi);
-        tvCatVegan = (TextView) findViewById(R.id.tvCatVegan);
-        tvCatSweets = (TextView) findViewById(R.id.tvCatSweets);
-        pbDatabaseUpdate = (ProgressBar) findViewById(R.id.pbDatabaseUpdate);
-        btnSearchCategory = (Button) findViewById(R.id.btnSearchCategory);
-        btnContact = (Button) findViewById(R.id.btnContact);
+        tvCatAsian = findViewById(R.id.tvCatAsian);
+        tvCatBar = findViewById(R.id.tvCatBar);
+        tvCatCoffee = findViewById(R.id.tvCatCoffee);
+        tvCatDairy = findViewById(R.id.tvCatDairy);
+        tvCatFish = findViewById(R.id.tvCatFish);
+        tvCatItalian = findViewById(R.id.tvCatItalian);
+        tvCatFrench = findViewById(R.id.tvCatFrench);
+        tvCatMeat = findViewById(R.id.tvCatMeat);
+        tvCatMediterranean = findViewById(R.id.tvCatMediterranean);
+        tvCatMexican = findViewById(R.id.tvCatMexican);
+        tvCatMiddleEastern = findViewById(R.id.tvCatMiddleEastern);
+        tvCatSandwiches = findViewById(R.id.tvCatSandwiches);
+        tvCatSushi = findViewById(R.id.tvCatSushi);
+        tvCatVegan = findViewById(R.id.tvCatVegan);
+        tvCatSweets = findViewById(R.id.tvCatSweets);
+        pbDatabaseUpdate = findViewById(R.id.pbDatabaseUpdate);
+        btnSearchCategory = findViewById(R.id.btnSearchCategory);
+        btnContact = findViewById(R.id.btnContact);
 
         // creating text view list so we can select them all, or deselect.
         mCategoryList.add(tvCatAsian);
@@ -376,18 +380,18 @@ public class FrontActivity extends AppCompatActivity implements
             new UpdateRestDatabaseTask(this).execute();
         }
 
-        mClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-//                .addOnConnectionlFailedListener(this)
-                .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .addApi(AppIndex.API).build();
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        autocompleteFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        if(!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), API_KEY);
+        }
+
+        autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
         autocompleteFragment.setHint(getString(R.string.autocomplete_hint));
+
+
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
@@ -452,7 +456,6 @@ public class FrontActivity extends AppCompatActivity implements
             lat = obj.get(JSON_LAT_TAG);
             lng = obj.get(JSON_LONG_TAG);
 
-
             Restaurant rest = new Restaurant(i+1, name, null,
                     isKosher, kosherType,
                     subTypes, address,
@@ -491,11 +494,18 @@ public class FrontActivity extends AppCompatActivity implements
         // has permission, change autocomplete text.
         autocompleteFragment.setHint(getString(R.string.autocomplete_hint_current_location));
 
-        if(!mClient.isConnected())
-            mClient.connect();
+//        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+//                mClient);
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if (location != null) {
+                            mLastLocation = location;
+                        }
+                    }
+                });
 
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mClient);
 
         if(mLoationRequest == null) {
             mLoationRequest = new LocationRequest();
@@ -503,61 +513,36 @@ public class FrontActivity extends AppCompatActivity implements
             mLoationRequest.setFastestInterval(5000);
             mLoationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, mLoationRequest, this);
-    }
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLoationRequest);
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 
-    /**
-     * Removes location updates from the FusedLocationApi.
-     */
-    protected void stopLocationUpdates() {
-        // It is a good practice to remove location requests when the activity is in a paused or
-        // stopped state. Doing so helps battery performance and is especially
-        // recommended in applications that request frequent location updates.
-
-        // The final argument to {@code requestLocationUpdates()} is a LocationListener
-        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        LocationServices.FusedLocationApi.removeLocationUpdates(mClient, this);
+//        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, mLoationRequest, this);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        mClient.connect();
-        AppIndex.AppIndexApi.start(mClient, getIndexApiAction());
+        mFusedLocationClient.requestLocationUpdates(mLoationRequest, mLocationCallback, null);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(mClient, getIndexApiAction());
-        mClient.disconnect();
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
-        if (mClient.isConnected()) {
-            stopLocationUpdates();
-        }
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Within {@code onPause()}, we pause location updates, but leave the
-        // connection to GoogleApiClient intact.  Here, we resume receiving
-        // location updates if the user has requested them.
-
-        if (mClient.isConnected()) {
-            startLocationUpdates();
-        }
+        mFusedLocationClient.requestLocationUpdates(mLoationRequest, mLocationCallback, null)
     }
 
     @Override
@@ -591,14 +576,6 @@ public class FrontActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onConnectionSuspended(int i) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
-        Log.d(TAG, "Connection suspended");
-        mClient.connect();
-    }
-
-    @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
         // onConnectionFailed.
@@ -626,22 +603,6 @@ public class FrontActivity extends AppCompatActivity implements
             // other 'case' lines to check for other
             // permissions this app might request
         }
-    }
-
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("Main Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
     }
 
     protected void onClickSelectedCategory(View v) {
