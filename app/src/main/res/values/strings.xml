@@ -24,4 +24,9 @@
     <string name="dialog_label_2">אם בכל זאת מצאתם טעות במידע, נשמח אם תוכלו לעדכן זאת ובכך לעזור לכולם</string>
     <string name="autocomplete_hint">הגדר מיקום אחר</string>
     <string name="autocomplete_hint_current_location">מוגדר מיקום עצמי</string>
+    <string name="permission_denied_explanation">test value</string>
+    <string name="settings">test value 2</string>
+    <string name="permission_rationale">test value 3</string>
+
+    <string name="google_places_api_key">AIzaSyD-mIfTtSyyCXwpZxYhhoaIZpSUCrXmyAY</string>
 </resources>

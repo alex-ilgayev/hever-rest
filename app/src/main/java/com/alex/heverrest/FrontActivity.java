@@ -1,12 +1,12 @@
 package com.alex.heverrest;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -28,18 +28,13 @@ import com.alex.heverrest.Model.Restaurant;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.database.DataSnapshot;
@@ -73,7 +68,8 @@ public class FrontActivity extends AppCompatActivity implements
     public static final String FIREBASE_RESTS = "rests";
     public static final String FIREBASE_REVIEWS = "reviews";
 
-    public static final String API_KEY = "AIzaSyD-mIfTtSyyCXwpZxYhhoaIZpSUCrXmyAY";
+//    public static final String API_KEY = "AIzaSyBWk3No2vpBaGPZD4wsNTsqpsFALthVDl8";
+    public static final String API_KEY = "AIzaSyCUshnx4iAu5e7X_QnxybIwfR5sRAOBKIc";
 
     private static final String JSON_NAME_TAG = "name";
     private static final String JSON_SUB_TYPE_TAG = "sub_type";
@@ -83,7 +79,6 @@ public class FrontActivity extends AppCompatActivity implements
     private static final String JSON_LAT_TAG = "lat";
     private static final String JSON_LONG_TAG = "long";
 
-    public final static int MY_PERMISSIONS_REQUEST_COARSE_LOCATION = 1;
     public final static int MY_PERMISSION_REQUEST_FINE_LOCATION = 2;
 
     TextView tvCatAsian;
@@ -108,15 +103,16 @@ public class FrontActivity extends AppCompatActivity implements
 
     SharedPreferences mPrefs;
 
-    FusedLocationProviderClient mFusedLocationClient;
-    LocationCallback mLocationCallback;
     Location mLastLocation;
-    LocationRequest mLoationRequest = null;
+    LocationRequest mLocationRequest = null;
+
     Place mSelectedGooglePlace = null;
     AutocompleteSupportFragment autocompleteFragment;
 
-    ArrayList<Restaurant.RestSubType> mSelectedCategories = new ArrayList();
+    ArrayList<Restaurant.RestSubType> mSelectedCategories = new ArrayList<>();
     boolean mIsKosherSelected = false;
+
+    private GoogleApiClient mClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -380,9 +376,11 @@ public class FrontActivity extends AppCompatActivity implements
             new UpdateRestDatabaseTask(this).execute();
         }
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addApi(LocationServices.API).build();
 
-        if(!Places.isInitialized()) {
+        if (!Places.isInitialized()) {
             Places.initialize(getApplicationContext(), API_KEY);
         }
 
@@ -391,6 +389,7 @@ public class FrontActivity extends AppCompatActivity implements
 
         autocompleteFragment.setHint(getString(R.string.autocomplete_hint));
 
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -405,15 +404,15 @@ public class FrontActivity extends AppCompatActivity implements
             }
         });
 
-        autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button)
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        autocompleteFragment.setText("");
-                        view.setVisibility(View.GONE);
-                        mSelectedGooglePlace = null;
-                    }
-                });
+//        autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button)
+//                .setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        autocompleteFragment.setText("");
+//                        view.setVisibility(View.GONE);
+//                        mSelectedGooglePlace = null;
+//                    }
+//                });
     }
 
     private void populateAllRestaurants(ArrayList<HashMap<String, String>> data) {
@@ -456,6 +455,7 @@ public class FrontActivity extends AppCompatActivity implements
             lat = obj.get(JSON_LAT_TAG);
             lng = obj.get(JSON_LONG_TAG);
 
+
             Restaurant rest = new Restaurant(i+1, name, null,
                     isKosher, kosherType,
                     subTypes, address,
@@ -484,9 +484,7 @@ public class FrontActivity extends AppCompatActivity implements
      */
     protected void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this,
-                        android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
         }
@@ -494,67 +492,79 @@ public class FrontActivity extends AppCompatActivity implements
         // has permission, change autocomplete text.
         autocompleteFragment.setHint(getString(R.string.autocomplete_hint_current_location));
 
-//        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-//                mClient);
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        if (location != null) {
-                            mLastLocation = location;
-                        }
-                    }
-                });
+        if(!mClient.isConnected())
+            mClient.connect();
 
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mClient);
 
-        if(mLoationRequest == null) {
-            mLoationRequest = new LocationRequest();
-            mLoationRequest.setInterval(10000);
-            mLoationRequest.setFastestInterval(5000);
-            mLoationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        if(mLocationRequest == null) {
+            mLocationRequest = new LocationRequest();
+            mLocationRequest.setInterval(10000);
+            mLocationRequest.setFastestInterval(5000);
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLoationRequest);
-        SettingsClient client = LocationServices.getSettingsClient(this);
-        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, mLocationRequest, this);
+    }
 
-//        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, mLoationRequest, this);
+    /**
+     * Removes location updates from the FusedLocationApi.
+     */
+    protected void stopLocationUpdates() {
+        // It is a good practice to remove location requests when the activity is in a paused or
+        // stopped state. Doing so helps battery performance and is especially
+        // recommended in applications that request frequent location updates.
+
+        // The final argument to {@code requestLocationUpdates()} is a LocationListener
+        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
+        LocationServices.FusedLocationApi.removeLocationUpdates(mClient, this);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mFusedLocationClient.requestLocationUpdates(mLoationRequest, mLocationCallback, null);
+
+        mClient.connect();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+
+        mClient.disconnect();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
+        if (mClient.isConnected()) {
+            stopLocationUpdates();
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mFusedLocationClient.requestLocationUpdates(mLoationRequest, mLocationCallback, null)
+        // Within {@code onPause()}, we pause location updates, but leave the
+        // connection to GoogleApiClient intact.  Here, we resume receiving
+        // location updates if the user has requested them.
+
+        if (mClient.isConnected()) {
+            startLocationUpdates();
+        }
     }
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        if (ActivityCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this,
-                        android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        int permissionCheck = ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if ( permissionCheck != PackageManager.PERMISSION_GRANTED ) {
 
             ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                    MY_PERMISSIONS_REQUEST_COARSE_LOCATION);
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSION_REQUEST_FINE_LOCATION);
 
             return;
         }
@@ -576,6 +586,14 @@ public class FrontActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void onConnectionSuspended(int i) {
+        // The connection to Google Play services was lost for some reason. We call connect() to
+        // attempt to re-establish the connection.
+        Log.d(TAG, "Connection suspended");
+        mClient.connect();
+    }
+
+    @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
         // onConnectionFailed.
@@ -586,8 +604,7 @@ public class FrontActivity extends AppCompatActivity implements
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSION_REQUEST_FINE_LOCATION:
-            case MY_PERMISSIONS_REQUEST_COARSE_LOCATION: {
+            case MY_PERMISSION_REQUEST_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -659,7 +676,7 @@ public class FrontActivity extends AppCompatActivity implements
             mSelectedCategories.remove(cat);
             tv.setTextAppearance(R.style.Category);
             tv.setBackgroundResource(R.drawable.item_category);
-         }
+        }
         else {
             mSelectedCategories.add(cat);
             tv.setTextAppearance(R.style.CategorySelected);
@@ -675,12 +692,12 @@ public class FrontActivity extends AppCompatActivity implements
         builder.setView(view);
         final EditText etContent = (EditText) view.findViewById(R.id.etContent);
         builder.setPositiveButton("שלח", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        String content = etContent.getText().toString();
-                        if(!content.trim().equals(""))
-                            FrontActivity.this.postReview(content.trim());
-                    }
-                })
+            public void onClick(DialogInterface dialog, int id) {
+                String content = etContent.getText().toString();
+                if(!content.trim().equals(""))
+                    FrontActivity.this.postReview(content.trim());
+            }
+        })
                 .setNegativeButton("בטל", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
@@ -701,95 +718,6 @@ public class FrontActivity extends AppCompatActivity implements
         ref.setValue(review);
         Toast.makeText(this, "נשלח", Toast.LENGTH_SHORT).show();
     }
-
-//    protected void populateAllRestaurant() {
-//        // checking if update needed, and updates.
-//        new UpdateRestDatabaseTask().execute();
-//
-//        if(RestaurantController.getInstance().getIsPopulated())
-//            return;
-//        ArrayList<Restaurant> restList = new ArrayList<>();
-//        HashMap<Restaurant.RestSubType, ArrayList<Restaurant>> hashRestList = new HashMap<>();
-//
-//        try {
-//            InputStream is = getResources().openRawResource(R.raw.json_rests);
-//            Writer writer = new StringWriter();
-//            char[] buffer = new char[1024];
-//
-//            try {
-//                Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-//                int n;
-//                while ((n = reader.read(buffer)) != -1) {
-//                    writer.write(buffer, 0, n);
-//                }
-//            } finally {
-//                is.close();
-//            }
-//
-//            String jsonString = writer.toString();
-//
-//            JSONArray jArr = new JSONArray(jsonString);
-//
-//            for(int i=0; i<jArr.length(); i++) {
-//                JSONObject jObj = jArr.getJSONObject(i);
-//
-//                String name;
-//                Restaurant.RestSubType[] subTypes;
-//                boolean isKosher;
-//                String kosherType;
-//                String address;
-//                String pic;
-//                String lat;
-//                String lng;
-//
-//
-//
-//                name = jObj.getString(JSON_NAME_TAG);
-//
-//                subTypes = Restaurant.RestSubType.findAllSubTypes(jObj.getString(JSON_SUB_TYPE_TAG));
-//
-//                if(jObj.has(JSON_KOSHER_TAG)) {
-//                    isKosher = true;
-//                    kosherType = jObj.getString(JSON_KOSHER_TAG);
-//                    if(kosherType.equals(getString(R.string.kosher_without_permission)))
-//                        isKosher = false;
-//                }
-//                else {
-//                    isKosher = false;
-//                    kosherType = "";
-//                }
-//
-//                if(!jObj.has(JSON_ADDRESS_TAG)) {
-//                    int x = 0;
-//                    x++;
-//                    continue;
-//                }
-//                address = jObj.getString(JSON_ADDRESS_TAG);
-//                pic = jObj.getString(JSON_PIC_TAG);
-//                final int id = getResources().getIdentifier(pic, "drawable", getPackageName());
-//                lat = jObj.getString(JSON_LAT_TAG);
-//                lng = jObj.getString(JSON_LONG_TAG);
-//
-//
-//                Restaurant rest = new Restaurant(i+1, name, null,
-//                        isKosher, kosherType,
-//                        subTypes, address,
-//                        Double.parseDouble(lat), Double.parseDouble(lng), id);
-//
-//                restList.add(rest);
-//
-//                for(Restaurant.RestSubType type: rest.subType) {
-//                    if(!hashRestList.containsKey(type))
-//                        hashRestList.put(type, new ArrayList<Restaurant>());
-//                    hashRestList.get(type).add(rest);
-//                }
-//            }
-//        } catch(Exception e) {
-//            e.printStackTrace();
-//            Toast.makeText(this, getString(R.string.json_error), Toast.LENGTH_LONG).show();
-//        }
-//        RestaurantController.getInstance().populateRestaurants(restList, hashRestList);
-//    }
 
     private class UpdateRestDatabaseTask extends AsyncTask<Void, Void, Void> {
         private final Context _ctx;
