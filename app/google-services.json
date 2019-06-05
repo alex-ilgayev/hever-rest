@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "571606122765-gr6st4q4tk8jn33tm5pjd92mrvcjjuop.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alex.heverrest",
+            "certificate_hash": "0a2e3bcab9d2bb22e9765d889b638abc0afdf2f1"
+          }
+        },
+        {
           "client_id": "571606122765-p4alftltt034opggp4r13epms3fmo87o.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -37,24 +45,17 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCUshnx4iAu5e7X_QnxybIwfR5sRAOBKIc"
+          "current_key": "AIzaSyDxXqyem5kSlncmAalPUVY20ME9qc08DaM"
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
               "client_id": "571606122765-ue15lfkn8fkguik910m4q30e7bkahbq0.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
         }
       }
     }

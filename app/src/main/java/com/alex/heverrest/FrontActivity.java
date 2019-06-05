@@ -26,14 +26,19 @@ import android.widget.Toast;
 import com.alex.heverrest.Controller.RestaurantController;
 import com.alex.heverrest.Model.Restaurant;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FetchPlaceRequest;
+import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
@@ -68,8 +73,7 @@ public class FrontActivity extends AppCompatActivity implements
     public static final String FIREBASE_RESTS = "rests";
     public static final String FIREBASE_REVIEWS = "reviews";
 
-//    public static final String API_KEY = "AIzaSyBWk3No2vpBaGPZD4wsNTsqpsFALthVDl8";
-    public static final String API_KEY = "AIzaSyCUshnx4iAu5e7X_QnxybIwfR5sRAOBKIc";
+    public static final String API_KEY = "AIzaSyBrqR23e2dPgT4bvXKaLa0Am7SLBSlxZsk";
 
     private static final String JSON_NAME_TAG = "name";
     private static final String JSON_SUB_TYPE_TAG = "sub_type";
@@ -385,11 +389,11 @@ public class FrontActivity extends AppCompatActivity implements
         }
 
         autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
         autocompleteFragment.setHint(getString(R.string.autocomplete_hint));
 
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -404,15 +408,15 @@ public class FrontActivity extends AppCompatActivity implements
             }
         });
 
-//        autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button)
-//                .setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        autocompleteFragment.setText("");
-//                        view.setVisibility(View.GONE);
-//                        mSelectedGooglePlace = null;
-//                    }
-//                });
+        autocompleteFragment.getView().findViewById(R.id.places_autocomplete_clear_button)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        autocompleteFragment.setText("");
+                        view.setVisibility(View.GONE);
+                        mSelectedGooglePlace = null;
+                    }
+                });
     }
 
     private void populateAllRestaurants(ArrayList<HashMap<String, String>> data) {
